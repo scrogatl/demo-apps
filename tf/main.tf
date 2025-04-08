@@ -2,8 +2,8 @@ provider "aws" {
   region = var.region
 }
 
-resource "aws_dynamodb_table" "sample_table" {
-  name             = "SampleTable"
+resource "aws_dynamodb_table" "ruby_lambda_dynamodb_table" {
+  name             = "ruby-lambda-dynamodb-table"
   billing_mode     = "PROVISIONED"
   read_capacity    = 2
   write_capacity   = 2
@@ -15,8 +15,8 @@ resource "aws_dynamodb_table" "sample_table" {
   }
 }
 
-resource "aws_api_gateway_rest_api" "api_gateway" {
-  name        = "SampleAPI"
+resource "aws_api_gateway_rest_api" "ruby_lambda_api_gateway" {
+  name        = "ruby-lambda-api-gateway"
   description = "API Gateway for serverless functions"
 
   endpoint_configuration {
@@ -25,9 +25,15 @@ resource "aws_api_gateway_rest_api" "api_gateway" {
 }
 
 resource "aws_api_gateway_resource" "resource_id" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  parent_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id
+  rest_api_id = aws_api_gateway_rest_api.ruby_lambda_api_gateway.id
+  parent_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.root_resource_id
   path_part   = "{id}"
+}
+
+data "archive_file" "get_all_items_zip" {
+  type        = "zip"
+  source_file = "src/handlers/get_all_items.rb"
+  output_path = "src/handlers/get_all_items.zip"
 }
 
 resource "aws_lambda_function" "get_all_items_function" {
@@ -41,16 +47,24 @@ resource "aws_lambda_function" "get_all_items_function" {
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.sample_table.name
+      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
+
+  depends_on = [ data.archive_file.get_all_items_zip ]
 }
 
 resource "aws_api_gateway_method" "get_all_items_method" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id
+  rest_api_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.id
+  resource_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.root_resource_id
   http_method   = "GET"
   authorization = "NONE"
+}
+
+data "archive_file" "create_item_zip" {
+  type        = "zip"
+  source_file = "src/handlers/create_item.rb"
+  output_path = "src/handlers/create_item.zip"
 }
 
 resource "aws_lambda_function" "create_item_function" {
@@ -64,16 +78,24 @@ resource "aws_lambda_function" "create_item_function" {
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.sample_table.name
+      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
+
+  depends_on = [ data.archive_file.create_item_zip ]
 }
 
 resource "aws_api_gateway_method" "create_item_method" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id
+  rest_api_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.id
+  resource_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.root_resource_id
   http_method   = "POST"
   authorization = "NONE"
+}
+
+data "archive_file" "get_item_by_id_zip" {
+  type        = "zip"
+  source_file = "src/handlers/get_item_by_id.rb"
+  output_path = "src/handlers/get_item_by_id.zip"
 }
 
 resource "aws_lambda_function" "get_item_by_id_function" {
@@ -87,16 +109,24 @@ resource "aws_lambda_function" "get_item_by_id_function" {
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.sample_table.name
+      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
+
+  depends_on = [ data.archive_file.get_item_by_id_zip ]
 }
 
 resource "aws_api_gateway_method" "get_item_by_id_method" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+  rest_api_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.id
   resource_id   = aws_api_gateway_resource.resource_id.id
   http_method   = "GET"
   authorization = "NONE"
+}
+
+data "archive_file" "delete_item_zip" {
+  type        = "zip"
+  source_file = "src/handlers/delete_item.rb"
+  output_path = "src/handlers/delete_item.zip"
 }
 
 resource "aws_lambda_function" "delete_item_function" {
@@ -110,16 +140,24 @@ resource "aws_lambda_function" "delete_item_function" {
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.sample_table.name
+      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
+
+  depends_on = [ data.archive_file.delete_item_zip ]
 }
 
 resource "aws_api_gateway_method" "delete_item_method" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+  rest_api_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.id
   resource_id   = aws_api_gateway_resource.resource_id.id
   http_method   = "DELETE"
   authorization = "NONE"
+}
+
+data "archive_file" "update_item_zip" {
+  type        = "zip"
+  source_file = "src/handlers/update_item.rb"
+  output_path = "src/handlers/update_item.zip"
 }
 
 resource "aws_lambda_function" "update_item_function" {
@@ -133,13 +171,15 @@ resource "aws_lambda_function" "update_item_function" {
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.sample_table.name
+      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
+
+  depends_on = [ data.archive_file.update_item_zip ]
 }
 
 resource "aws_api_gateway_method" "update_item_method" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+  rest_api_id   = aws_api_gateway_rest_api.ruby_lambda_api_gateway.id
   resource_id   = aws_api_gateway_resource.resource_id.id
   http_method   = "PUT"
   authorization = "NONE"
