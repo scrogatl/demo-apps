@@ -13,5 +13,5 @@ variable "memory_size" {
 variable "region" {
   description = "AWS region for deployment"
   type        = string
-  default     = "us-east-1"  # Default AWS region; modify as needed
+  default     = "eu-west-1"  # Default AWS region; modify as needed
 }
