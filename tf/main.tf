@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-1"  # Change this to your desired region
+  region = "eu-west-1"  # Change this to your desired region
 }
 
 resource "aws_dynamodb_table" "sample_table" {
