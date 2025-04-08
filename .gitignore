@@ -62,3 +62,5 @@ pnpm-lock.yaml
 # Ignore Ruby Gems
 /.bundle/
 /vendor/bundle/
+
+web/handlers/*.zip

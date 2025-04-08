@@ -27,7 +27,7 @@ Globals:
     Environment:
       Variables:
         # Make table name accessible as environment variable from function code during execution
-        SAMPLE_TABLE: !Ref SampleTable
+        RUBY_LAMBDA_TABLE: !Ref SampleTable
 
 # Resources declares the AWS resources that you want to include in the stack
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html

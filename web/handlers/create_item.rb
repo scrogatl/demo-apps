@@ -9,14 +9,14 @@ def handler(event:, context:)
   item = body.slice("id", "name")
 
   existing_item = client.get_item(
-    table_name: ENV["SAMPLE_TABLE"],
+    table_name: ENV["RUBY_LAMBDA_TABLE"],
     key: { "id" => item["id"] }
   ).item
 
   raise ItemAlreadyExistsError unless existing_item.nil?
 
   client.put_item(
-    table_name: ENV["SAMPLE_TABLE"],
+    table_name: ENV["RUBY_LAMBDA_TABLE"],
     item: item
   )
 

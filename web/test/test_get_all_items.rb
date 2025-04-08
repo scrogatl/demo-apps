@@ -5,7 +5,7 @@ require_relative "../src/handlers/get_all_items"
 
 class TestGetAllItems < Minitest::Test
   def setup
-    ENV["SAMPLE_TABLE"] = "test_table"
+    ENV["RUBY_LAMBDA_TABLE"] = "RUBY_LAMBDA_TABLE"
     @client = Aws::DynamoDB::Client.new(stub_responses: true)
   end
 

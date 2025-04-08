@@ -3,7 +3,7 @@
 require "aws-sdk-dynamodb"
 
 def handler(event:, context:)
-  data = client.scan(table_name: ENV["SAMPLE_TABLE"])
+  data = client.scan(table_name: ENV["RUBY_LAMBDA_TABLE"])
   items = data.items
 
   { statusCode: 200, body: items.to_json }

@@ -7,14 +7,14 @@ class ItemNotFoundError < StandardError; end
 def handler(event:, context:)
   id = event["pathParameters"]["id"]
   item = client.get_item(
-    table_name: ENV["SAMPLE_TABLE"],
+    table_name: ENV["RUBY_LAMBDA_TABLE"],
     key: { "id" => id }
   ).item
 
   raise ItemNotFoundError if item.nil?
 
   client.delete_item(
-    table_name: ENV["SAMPLE_TABLE"],
+    table_name: ENV["RUBY_LAMBDA_TABLE"],
     key: { "id" => id }
   )
 

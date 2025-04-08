@@ -2,6 +2,52 @@ provider "aws" {
   region = var.region
 }
 
+resource "aws_iam_role" "lambda_exec" {
+  name = "lambda_exec_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "lambda_exec_policy" {
+  name        = "lambda_exec_policy"
+  description = "IAM policy for Lambda execution role"
+  
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:*",
+        "dynamodb:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_exec_attach" {
+  policy_arn = aws_iam_policy.lambda_exec_policy.arn
+  role       = aws_iam_role.lambda_exec.name
+}
+
 resource "aws_dynamodb_table" "ruby_lambda_dynamodb_table" {
   name             = "ruby-lambda-dynamodb-table"
   billing_mode     = "PROVISIONED"
@@ -32,22 +78,22 @@ resource "aws_api_gateway_resource" "resource_id" {
 
 data "archive_file" "get_all_items_zip" {
   type        = "zip"
-  source_file = "src/handlers/get_all_items.rb"
-  output_path = "src/handlers/get_all_items.zip"
+  source_file = "../web/handlers/get_all_items.rb"
+  output_path = "../web/handlers/get_all_items.zip"
 }
 
 resource "aws_lambda_function" "get_all_items_function" {
-  filename         = "src/handlers/get_all_items.zip"
+  filename         = "../web/handlers/get_all_items.zip"
   function_name    = "GetAllItemsFunction"
   role             = aws_iam_role.lambda_exec.arn
-  handler          = "src/handlers/get_all_items.handler"
+  handler          = "../web/handlers/get_all_items.handler"
   runtime          = var.runtime
   memory_size      = var.memory_size
   timeout          = 3
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
+      RUBY_LAMBDA_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
 
@@ -63,22 +109,22 @@ resource "aws_api_gateway_method" "get_all_items_method" {
 
 data "archive_file" "create_item_zip" {
   type        = "zip"
-  source_file = "src/handlers/create_item.rb"
-  output_path = "src/handlers/create_item.zip"
+  source_file = "../web/handlers/create_item.rb"
+  output_path = "../web/handlers/create_item.zip"
 }
 
 resource "aws_lambda_function" "create_item_function" {
-  filename         = "src/handlers/create_item.zip"
+  filename         = "../web/handlers/create_item.zip"
   function_name    = "CreateItemFunction"
   role             = aws_iam_role.lambda_exec.arn
-  handler          = "src/handlers/create_item.handler"
+  handler          = "../web/handlers/create_item.handler"
   runtime          = var.runtime
   memory_size      = var.memory_size
   timeout          = 3
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
+      RUBY_LAMBDA_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
 
@@ -94,22 +140,22 @@ resource "aws_api_gateway_method" "create_item_method" {
 
 data "archive_file" "get_item_by_id_zip" {
   type        = "zip"
-  source_file = "src/handlers/get_item_by_id.rb"
-  output_path = "src/handlers/get_item_by_id.zip"
+  source_file = "../web/handlers/get_item_by_id.rb"
+  output_path = "../web/handlers/get_item_by_id.zip"
 }
 
 resource "aws_lambda_function" "get_item_by_id_function" {
-  filename         = "src/handlers/get_item_by_id.zip"
+  filename         = "../web/handlers/get_item_by_id.zip"
   function_name    = "GetItemByIdFunction"
   role             = aws_iam_role.lambda_exec.arn
-  handler          = "src/handlers/get_item_by_id.handler"
+  handler          = "../web/handlers/get_item_by_id.handler"
   runtime          = var.runtime
   memory_size      = var.memory_size
   timeout          = 3
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
+      RUBY_LAMBDA_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
 
@@ -125,22 +171,22 @@ resource "aws_api_gateway_method" "get_item_by_id_method" {
 
 data "archive_file" "delete_item_zip" {
   type        = "zip"
-  source_file = "src/handlers/delete_item.rb"
-  output_path = "src/handlers/delete_item.zip"
+  source_file = "../web/handlers/delete_item.rb"
+  output_path = "../web/handlers/delete_item.zip"
 }
 
 resource "aws_lambda_function" "delete_item_function" {
-  filename         = "src/handlers/delete_item.zip"
+  filename         = "../web/handlers/delete_item.zip"
   function_name    = "DeleteItemFunction"
   role             = aws_iam_role.lambda_exec.arn
-  handler          = "src/handlers/delete_item.handler"
+  handler          = "../web/handlers/delete_item.handler"
   runtime          = var.runtime
   memory_size      = var.memory_size
   timeout          = 3
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
+      RUBY_LAMBDA_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
 
@@ -156,22 +202,22 @@ resource "aws_api_gateway_method" "delete_item_method" {
 
 data "archive_file" "update_item_zip" {
   type        = "zip"
-  source_file = "src/handlers/update_item.rb"
-  output_path = "src/handlers/update_item.zip"
+  source_file = "../web/handlers/update_item.rb"
+  output_path = "../web/handlers/update_item.zip"
 }
 
 resource "aws_lambda_function" "update_item_function" {
-  filename         = "src/handlers/update_item.zip"
+  filename         = "../web/handlers/update_item.zip"
   function_name    = "UpdateItemFunction"
   role             = aws_iam_role.lambda_exec.arn
-  handler          = "src/handlers/update_item.handler"
+  handler          = "../web/handlers/update_item.handler"
   runtime          = var.runtime
   memory_size      = var.memory_size
   timeout          = 3
 
   environment {
     variables = {
-      SAMPLE_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
+      RUBY_LAMBDA_TABLE = aws_dynamodb_table.ruby_lambda_dynamodb_table.name
     }
   }
 

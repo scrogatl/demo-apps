@@ -8,7 +8,7 @@ def handler(event:, context:)
   id = event["pathParameters"]["id"]
 
   data = client.get_item(
-    table_name: ENV["SAMPLE_TABLE"],
+    table_name: ENV["RUBY_LAMBDA_TABLE"],
     key: { "id" => id }
   )
   item = data.item

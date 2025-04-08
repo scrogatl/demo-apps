@@ -5,7 +5,7 @@ require_relative "../src/handlers/delete_item"
 
 class TestDeleteItem < Minitest::Test
   def setup
-    ENV["SAMPLE_TABLE"] = "test_table"
+    ENV["RUBY_LAMBDA_TABLE"] = "RUBY_LAMBDA_TABLE"
     @client = Aws::DynamoDB::Client.new(stub_responses: true)
   end
 

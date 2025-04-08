@@ -7,7 +7,7 @@ class ItemNotFoundError < StandardError; end
 def handler(event:, context:)
   id = event["pathParameters"]["id"]
   item = client.get_item(
-    table_name: ENV["SAMPLE_TABLE"],
+    table_name: ENV["RUBY_LAMBDA_TABLE"],
     key: { "id" => id }
   ).item
 
@@ -16,7 +16,7 @@ def handler(event:, context:)
   body = JSON.parse(event["body"])
 
   data = client.update_item(
-    table_name: ENV["SAMPLE_TABLE"],
+    table_name: ENV["RUBY_LAMBDA_TABLE"],
     key: { "id" => id },
     update_expression: "SET #name = :name",
     expression_attribute_names: { "#name" => "name" },
