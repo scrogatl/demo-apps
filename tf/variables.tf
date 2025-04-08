@@ -1,7 +1,7 @@
 variable "runtime" {
   description = "The runtime environment for the Lambda function"
   type        = string
-  default     = "nodejs14.x"  # Change this to your desired runtime
+  default     = "ruby3.4" 
 }
 
 variable "memory_size" {
