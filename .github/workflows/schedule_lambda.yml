@@ -35,11 +35,8 @@ jobs:
       
     - name: CreateItem
       run: |
-        # Encode the payload with base64
         encodedPayload=$(echo '{"body": "{\"id\": \"1\", \"name\": \"test\"}"}' | base64)
-
-        # Invoke using the encoded payload
-        aws lambda invoke --function-name CreateItemFunction --payload "$encodedPayload" response.json
+        aws lambda invoke --function-name CreateItemFunction --payload "eyJib2R5IjogIntcImlkXCI6IFwiMVwiLFwibmFtZVwiOiBcInRlc3RcIn0ifQ==" response.json
         cat response.json
 
     - name: DeleteItem
