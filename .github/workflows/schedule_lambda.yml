@@ -35,7 +35,7 @@ jobs:
       
     - name: CreateItem
       run: |
-        encodedPayload=$(echo '{"body": "{"id": "1", "name": "test"}"}' | base64)
+        encodedPayload=$(echo '{"body": {"id": "1", "name": "test"}}' | base64)
         aws lambda invoke --function-name CreateItemFunction --payload "$encodedPayload" response.json
         cat response.json
 
