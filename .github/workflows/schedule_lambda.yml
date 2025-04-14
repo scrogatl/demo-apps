@@ -35,7 +35,7 @@ jobs:
       
     - name: CreateItem
       run: |
-        aws lambda invoke --function-name CreateItemFunction --payload '{"body": "{\"id\": \"1\",\"name\": \"test\"}"}' response.json
+        aws lambda invoke --function-name CreateItemFunction --payload '{"body": "{\"id\": \"1\", \"name\": \"test\"}"}' response.json
         cat response.json
 
     - name: DeleteItem
