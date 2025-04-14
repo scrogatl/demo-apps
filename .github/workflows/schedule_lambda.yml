@@ -41,7 +41,8 @@ jobs:
 
     - name: DeleteItem
       run: |
-        aws lambda invoke --function-name DeleteItemFunction --payload '{"pathParameters": {"id": "1"}}' response.json
+        encodedPayload=$(echo '{"pathParameters": {"id": "1"}}' | base64)
+        aws lambda invoke --function-name DeleteItemFunction --payload "$encodedPayload" response.json
         cat response.json
 
     # Add additional steps here for more Lambda functions as needed
