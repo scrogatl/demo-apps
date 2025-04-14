@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# source "https://rubygems.org"
+
+# ruby "~> {{ cookiecutter.options[cookiecutter.runtime].version }}"
+
 source "https://rubygems.org"
 
-ruby "~> {{ cookiecutter.options[cookiecutter.runtime].version }}"
+gem "aws-sdk-dynamodb"

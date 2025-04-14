@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+require 'bundler/setup'
 require "aws-sdk-dynamodb"
 
 def handler(event:, context:)

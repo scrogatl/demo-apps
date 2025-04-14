@@ -1,7 +1,9 @@
 provider "aws" {
   region  = var.region
-  # profile = "demotron-v4"
+  profile = "default"
 }
+
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "lambda_exec" {
   name = "lambda_exec_role"
@@ -93,20 +95,33 @@ resource "aws_api_gateway_integration" "get_all_items_function_integration" {
   uri                     = aws_lambda_function.get_all_items_function.invoke_arn
 }
 
-data "archive_file" "get_all_items_zip" {
-  type        = "zip"
-  source_file = "../web/handlers/get_all_items.rb"
-  output_path = "../web/handlers/get_all_items.zip"
+resource "null_resource" "package_get_all_items_lambda" {
+  provisioner "local-exec" {
+    command = <<-EOF
+      set -e
+      cd ../web/handlers
+      bundle config set --local path 'vendor/bundle' && bundle install --path vendor/bundle
+      zip -r get_all_items.zip get_all_items.rb vendor
+      echo "Package creation complete."
+    EOF
+  }
 }
+
+# data "archive_file" "get_all_items_zip" {
+#   type        = "zip"
+#   source_file = "../web/handlers/get_all_items.rb"
+#   output_path = "../web/handlers/get_all_items.zip"
+# }
 
 resource "aws_lambda_function" "get_all_items_function" {
   filename      = "../web/handlers/get_all_items.zip"
   function_name = "GetAllItemsFunction"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "../web/handlers/get_all_items.handler"
-  runtime       = var.runtime
-  memory_size   = var.memory_size
-  timeout       = 3
+  # handler       = "../web/handlers/get_all_items.handler"
+  handler     = "get_all_items.handler"
+  runtime     = var.runtime
+  memory_size = var.memory_size
+  timeout     = 3
 
   environment {
     variables = {
@@ -114,23 +129,37 @@ resource "aws_lambda_function" "get_all_items_function" {
     }
   }
 
-  depends_on = [data.archive_file.get_all_items_zip]
+  depends_on = [null_resource.package_get_all_items_lambda]
 }
 
-data "archive_file" "create_item_zip" {
-  type        = "zip"
-  source_file = "../web/handlers/create_item.rb"
-  output_path = "../web/handlers/create_item.zip"
+# data "archive_file" "create_item_zip" {
+#   type        = "zip"
+#   source_file = "../web/handlers/create_item.rb"
+#   output_path = "../web/handlers/create_item.zip"
+# }
+
+resource "null_resource" "package_create_item_lambda" {
+  provisioner "local-exec" {
+    command = <<-EOF
+      set -e
+      cd ../web/handlers
+      bundle config set --local path 'vendor/bundle' && bundle install --path vendor/bundle
+      zip -r create_item.zip create_item.rb vendor
+      echo "Package creation complete."
+    EOF
+  }
 }
+
 
 resource "aws_lambda_function" "create_item_function" {
   filename      = "../web/handlers/create_item.zip"
   function_name = "CreateItemFunction"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "../web/handlers/create_item.handler"
-  runtime       = var.runtime
-  memory_size   = var.memory_size
-  timeout       = 3
+  # handler       = "../web/handlers/create_item.handler"
+  handler     = "create_item.handler"
+  runtime     = var.runtime
+  memory_size = var.memory_size
+  timeout     = 3
 
   environment {
     variables = {
@@ -138,7 +167,7 @@ resource "aws_lambda_function" "create_item_function" {
     }
   }
 
-  depends_on = [data.archive_file.create_item_zip]
+  depends_on = [null_resource.package_create_item_lambda]
 }
 
 resource "aws_api_gateway_method" "create_item_method" {
@@ -157,20 +186,33 @@ resource "aws_api_gateway_integration" "create_item_function_integration" {
   uri                     = aws_lambda_function.create_item_function.invoke_arn
 }
 
-data "archive_file" "get_item_by_id_zip" {
-  type        = "zip"
-  source_file = "../web/handlers/get_item_by_id.rb"
-  output_path = "../web/handlers/get_item_by_id.zip"
+# data "archive_file" "get_item_by_id_zip" {
+#   type        = "zip"
+#   source_file = "../web/handlers/get_item_by_id.rb"
+#   output_path = "../web/handlers/get_item_by_id.zip"
+# }
+
+resource "null_resource" "package_get_item_by_id_lambda" {
+  provisioner "local-exec" {
+    command = <<-EOF
+      set -e
+      cd ../web/handlers
+      bundle config set --local path 'vendor/bundle' && bundle install --path vendor/bundle
+      zip -r get_item_by_id.zip get_item_by_id.rb vendor
+      echo "Package creation complete."
+    EOF
+  }
 }
 
 resource "aws_lambda_function" "get_item_by_id_function" {
   filename      = "../web/handlers/get_item_by_id.zip"
   function_name = "GetItemByIdFunction"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "../web/handlers/get_item_by_id.handler"
-  runtime       = var.runtime
-  memory_size   = var.memory_size
-  timeout       = 3
+  # handler       = "../web/handlers/get_item_by_id.handler"
+  handler     = "get_item_by_id.handler"
+  runtime     = var.runtime
+  memory_size = var.memory_size
+  timeout     = 3
 
   environment {
     variables = {
@@ -178,7 +220,7 @@ resource "aws_lambda_function" "get_item_by_id_function" {
     }
   }
 
-  depends_on = [data.archive_file.get_item_by_id_zip]
+  depends_on = [null_resource.package_get_item_by_id_lambda]
 }
 
 resource "aws_api_gateway_method" "get_item_by_id_method" {
@@ -197,20 +239,33 @@ resource "aws_api_gateway_integration" "get_item_function_integration" {
   uri                     = aws_lambda_function.get_item_by_id_function.invoke_arn
 }
 
-data "archive_file" "delete_item_zip" {
-  type        = "zip"
-  source_file = "../web/handlers/delete_item.rb"
-  output_path = "../web/handlers/delete_item.zip"
+# data "archive_file" "delete_item_zip" {
+#   type        = "zip"
+#   source_file = "../web/handlers/delete_item.rb"
+#   output_path = "../web/handlers/delete_item.zip"
+# }
+
+resource "null_resource" "package_delete_item_lambda" {
+  provisioner "local-exec" {
+    command = <<-EOF
+      set -e
+      cd ../web/handlers
+      bundle config set --local path 'vendor/bundle' && bundle install --path vendor/bundle
+      zip -r delete_item.zip delete_item.rb vendor
+      echo "Package creation complete."
+    EOF
+  }
 }
 
 resource "aws_lambda_function" "delete_item_function" {
   filename      = "../web/handlers/delete_item.zip"
   function_name = "DeleteItemFunction"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "../web/handlers/delete_item.handler"
-  runtime       = var.runtime
-  memory_size   = var.memory_size
-  timeout       = 3
+  # handler       = "../web/handlers/delete_item.handler"
+  handler     = "delete_item.handler"
+  runtime     = var.runtime
+  memory_size = var.memory_size
+  timeout     = 3
 
   environment {
     variables = {
@@ -218,7 +273,7 @@ resource "aws_lambda_function" "delete_item_function" {
     }
   }
 
-  depends_on = [data.archive_file.delete_item_zip]
+  depends_on = [null_resource.package_delete_item_lambda]
 }
 
 resource "aws_api_gateway_method" "delete_item_method" {
@@ -237,20 +292,33 @@ resource "aws_api_gateway_integration" "delete_item_function_integration" {
   uri                     = aws_lambda_function.delete_item_function.invoke_arn
 }
 
-data "archive_file" "update_item_zip" {
-  type        = "zip"
-  source_file = "../web/handlers/update_item.rb"
-  output_path = "../web/handlers/update_item.zip"
+# data "archive_file" "update_item_zip" {
+#   type        = "zip"
+#   source_file = "../web/handlers/update_item.rb"
+#   output_path = "../web/handlers/update_item.zip"
+# }
+
+resource "null_resource" "package_update_item_lambda" {
+  provisioner "local-exec" {
+    command = <<-EOF
+      set -e
+      cd ../web/handlers
+      bundle config set --local path 'vendor/bundle' && bundle install --path vendor/bundle
+      zip -r update_item.zip update_item.rb vendor
+      echo "Package creation complete."
+    EOF
+  }
 }
 
 resource "aws_lambda_function" "update_item_function" {
   filename      = "../web/handlers/update_item.zip"
   function_name = "UpdateItemFunction"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "../web/handlers/update_item.handler"
-  runtime       = var.runtime
-  memory_size   = var.memory_size
-  timeout       = 3
+  # handler       = "../web/handlers/update_item.handler"
+  handler     = "update_item.handler"
+  runtime     = var.runtime
+  memory_size = var.memory_size
+  timeout     = 3
 
   environment {
     variables = {
@@ -258,7 +326,7 @@ resource "aws_lambda_function" "update_item_function" {
     }
   }
 
-  depends_on = [data.archive_file.update_item_zip]
+  depends_on = [null_resource.package_update_item_lambda]
 }
 
 resource "aws_api_gateway_method" "update_item_method" {
