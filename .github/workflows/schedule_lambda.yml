@@ -1,6 +1,7 @@
 name: Trigger Lambda Functions
 
 on:
+  workflow_dispatch:
   schedule:
     # Run every 20 minutes
     - cron: "*/10 * * * *"
