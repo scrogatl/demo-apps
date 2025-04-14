@@ -28,14 +28,19 @@ jobs:
 # GetItemByIdFunction
 # UpdateItemFunction
 
-    - name: Invoke Lambda Function 1
+    - name: GetAllItems
       run: |
         aws lambda invoke --function-name GetAllItemsFunction --payload '{}' response.json
         cat response.json
       
-    - name: Invoke Lambda Function 2
+    - name: CreateItem
       run: |
-        aws lambda invoke --function-name CreateItemFunction --payload '{"body": "{\"id\": \"1\",\"name\": \"test\"}"}' response.json
+        aws lambda invoke --function-name CreateItemFunction --payload '{"body": "{"id": "1","name": "test"}"}' response.json
+        cat response.json
+
+    - name: DeleteItem
+      run: |
+        aws lambda invoke --function-name DeleteItemFunction --payload '{"pathParameters": {"id": "1"}}' response.json
         cat response.json
 
     # Add additional steps here for more Lambda functions as needed
