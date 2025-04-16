@@ -14,12 +14,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-cli@v2
+    - name: Configure credentials
+      id: credentials
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ vars.AWS_REGION }}
+        aws-region: ${{ vars.AWS_REGION_RUBY_LAMBDA }}
 
 # CreateItemFunction
 # GetAllItemsFunction
@@ -27,14 +28,33 @@ jobs:
 # GetItemByIdFunction
 # UpdateItemFunction
 
-    - name: Invoke Lambda Function 1
+    - name: GetAllItems
       run: |
         aws lambda invoke --function-name GetAllItemsFunction --payload '{}' response.json
         cat response.json
       
-    - name: Invoke Lambda Function 2
+    - name: CreateItem
       run: |
-        aws lambda invoke --function-name CreateItemFunction --payload '{"body": "{\"id\": \"1\",\"name\": \"test\"}"}' response.json
+        encodedPayload=$(echo '{"body": {"id": "1", "name": "test"}}' | base64)
+        aws lambda invoke --function-name CreateItemFunction --payload "$encodedPayload" response.json
+        cat response.json
+
+    - name: GetItemById
+      run: |
+        encodedPayload=$(echo '{"pathParameters": {"id": "1"}}' | base64)
+        aws lambda invoke --function-name GetItemByIdFunction --payload "$encodedPayload" response.json
+        cat response.json
+
+    - name: UpdateItem
+      run: |
+        encodedPayload=$(echo '{"body": {"name": "updated"}, "pathParameters": {"id": "1"}}' | base64)
+        aws lambda invoke --function-name UpdateItemFunction --payload "$encodedPayload" response.json
+        cat response.json
+
+    - name: DeleteItem
+      run: |
+        encodedPayload=$(echo '{"pathParameters": {"id": "1"}}' | base64)
+        aws lambda invoke --function-name DeleteItemFunction --payload "$encodedPayload" response.json
         cat response.json
 
     # Add additional steps here for more Lambda functions as needed
