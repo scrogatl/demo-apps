@@ -42,13 +42,13 @@ jobs:
     - name: GetItemById
       run: |
         encodedPayload=$(echo '{"pathParameters": {"id": "1"}}' | base64)
-        aws lambda invoke --function-name DeleteItemFunction --payload "$encodedPayload" response.json
+        aws lambda invoke --function-name GetItemByIdFunction --payload "$encodedPayload" response.json
         cat response.json
 
     - name: UpdateItem
       run: |
         encodedPayload=$(echo '{"body": {"name": "updated"}, "pathParameters": {"id": "1"}}' | base64)
-        aws lambda invoke --function-name DeleteItemFunction --payload "$encodedPayload" response.json
+        aws lambda invoke --function-name UpdateItemFunction --payload "$encodedPayload" response.json
         cat response.json
 
     - name: DeleteItem
