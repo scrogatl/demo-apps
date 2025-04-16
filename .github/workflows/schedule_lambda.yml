@@ -39,6 +39,18 @@ jobs:
         aws lambda invoke --function-name CreateItemFunction --payload "$encodedPayload" response.json
         cat response.json
 
+    - name: GetItemById
+      run: |
+        encodedPayload=$(echo '{"pathParameters": {"id": "1"}}' | base64)
+        aws lambda invoke --function-name DeleteItemFunction --payload "$encodedPayload" response.json
+        cat response.json
+
+    - name: UpdateItem
+      run: |
+        encodedPayload=$(echo '{"body": "{\"name\": \"updated\"}", "pathParameters": {"id": "1"}}' | base64)
+        aws lambda invoke --function-name DeleteItemFunction --payload "$encodedPayload" response.json
+        cat response.json
+
     - name: DeleteItem
       run: |
         encodedPayload=$(echo '{"pathParameters": {"id": "1"}}' | base64)
