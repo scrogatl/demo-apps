@@ -5,8 +5,9 @@ require "aws-sdk-dynamodb"
 class ItemAlreadyExistsError < StandardError; end
 
 def handler(event:, context:)
-  body = JSON.parse(event["body"])
-  item = body.slice("id", "name")
+  puts event
+  # body = JSON.parse(event["body"])
+  item = event["body"].slice("id", "name")
 
   existing_item = client.get_item(
     table_name: ENV["RUBY_LAMBDA_TABLE"],
