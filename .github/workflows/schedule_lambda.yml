@@ -47,7 +47,7 @@ jobs:
 
     - name: UpdateItem
       run: |
-        encodedPayload=$(echo '{"body": "{"name": "updated"}", "pathParameters": {"id": "1"}}' | base64)
+        encodedPayload=$(echo '{"body": {"name": "updated"}, "pathParameters": {"id": "1"}}' | base64)
         aws lambda invoke --function-name DeleteItemFunction --payload "$encodedPayload" response.json
         cat response.json
 
