@@ -25,7 +25,7 @@ public class KafkaMSK {
 
     private static final String DEMOGORGON_TOPIC = "demogorgon.ecommerce.cart";
     private static final String MSK_TOPIC = "MSKTopic";
-    private static final String BOOTSTRAP_SERVERS = "<INSERT_BROKER>";
+    private static final String BOOTSTRAP_SERVERS = "<INSERT_BOOTSTRAP>";
 
     public static void main(String[] args) {
         ExecutorService executorService = Executors.newFixedThreadPool(3);

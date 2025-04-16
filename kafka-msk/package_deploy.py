@@ -25,7 +25,7 @@ def zip_directory(directory_path, zip_name):
 def main():
     # Take user inputs for the text replacements
     license_key = input("Enter New Relic license key: ")
-    msk_broker = input("Paste your MSK broker's bootstrap server: ")
+    msk_bootstrap = input("Paste your MSK broker's bootstrap server: ")
 
     # Define the paths to the files where replacements need to be made
     nrfile_path = 'newrelic/newrelic.yml' 
@@ -33,7 +33,7 @@ def main():
 
     # Replace text in the specified files
     replace_text_in_file(nrfile_path, "<INSERT_LICENSE_KEY>", license_key)
-    replace_text_in_file(javafile_path, "<INSERT_BROKER>", msk_broker)
+    replace_text_in_file(javafile_path, "<INSERT_BOOTSTRAP>", msk_bootstrap)
 
     # Zip the current directory
     current_directory = os.getcwd()
