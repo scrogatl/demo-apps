@@ -1,0 +1,102 @@
+# Ignore system files (macOS)
+.DS_Store
+Thumbs.db
+
+# Ignore Visual Studio Code settings
+.vscode/
+*.code-workspace
+
+# Ignore Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Python-related files
+__pycache__/
+*.py[cod]
+env/
+venv/
+*.env
+
+# Java-related files
+*.class
+*.jar
+*.war
+*.ear
+
+# Java build files
+target/
+build/
+
+# Ruby-related files
+*.gem
+log/
+tmp/
+.sass-cache/
+vendor/bundle
+
+# JavaScript/TypeScript files
+dist/
+*.log
+
+# Go-related files
+bin/
+vendor/
+*.exe
+
+# PHP dependencies and build files
+vendor/
+composer.lock
+
+# Swift-related files
+xcuserdata/
+DerivedData/
+*.xcworkspace
+
+# C/C++ files
+*.out
+*.o
+*.a
+*.lib
+*.dll
+*.so
+
+# C# files
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
+
+# Ignore database files
+*.sql
+*.sqlite
+*.db
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+
+# Ignore IDE and editor-specific files
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.log
+
+# GitHub configuration files (optional)
+.github/
+
+# Other commonly ignored files
+*.generated
+*.iml
+*.ipr
+*.iws
+
+# Ignore archives and compressed files
+*.zip
+*.tar.gz
+*.rar
+*.7z
