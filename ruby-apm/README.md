@@ -16,16 +16,14 @@ The primary goal is to showcase how New Relic traces requests across multiple se
 ## Architecture
 
 ```text
-+-----------------+      +-----------------+      +-----------------+      +-----------------+
-| Load Generator  | ---> |   frontend     | ---> |   inventory_service     | ---> |   user_service     |
-| (Ruby Script)   |      |  (Rails App)    |      | (Sinatra App)   |      | (Sinatra App)   |
-| Container       |      |  Container      |      |  Container      |      |  Container      |
-| `loadgen`       |      |  `app`          |      |  `service_b`    |      |  `service_c`    |
-|                 |      |  Port 3000      |      |  Port 4567      |      |  Port 4568      |
-+-----------------+      +-----------------+      +-----------------+      +-----------------+
-       |                      |                      |                      |
-       +----------------------+----------------------+----------------------+---> New Relic Platform
-                                    (APM Data & Distributed Traces)
++---------------------+      +---------------------+      +---------------------+      +---------------------+
+|    load_generator   | ---> |      frontend       | ---> |  inventory_service  | ---> |     user_service    |
+|     Ruby Script     |      |      Rails App      |      |     Sinatra App     |      |      Sinatra App    |
+|                     |      |      Port 3000      |      |      Port 4567      |      |       Port 4568     |
++---------------------+      +---------------------+      +---------------------+      +---------------------+
+                |                       |                            |                       |
+                +-----------------------+----------------------------+-----------------------+-----> New Relic
+                                        (APM Data & Distributed Traces)
 ```
 
 * **Load Generator**: Sends requests to the `frontend` service's `/hello` endpoint.
