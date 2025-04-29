@@ -1,0 +1,8 @@
+# frontend/Rakefile
+
+# Add your own tasks in files placed in lib/tasks.
+# Rake tasks defined in Railties, engines, and plugins are automatically loaded.
+
+require_relative "config/application"
+
+Rails.application.load_tasks

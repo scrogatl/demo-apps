@@ -1,0 +1,56 @@
+#
+# frontend/config/newrelic.yml
+#
+# This file configures the New Relic Agent. Configuration options are
+# explained in depth at https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration
+#
+# NOTE: Most configuration is handled by environment variables in docker-compose.yml
+# for easier container-based setup. This file provides defaults or less
+# commonly changed settings.
+#
+common: &default_settings
+  # Required: You must specify your license key via the
+  # NEW_RELIC_LICENSE_KEY environment variable. Using the environment
+  # variable is preferred for security and flexibility.
+  # license_key: '<YOUR_NEW_RELIC_LICENSE_KEY>' # Set in docker-compose.yml
+
+  # Required: Set your application name via the NEW_RELIC_APP_NAME
+  # environment variable. Using the environment variable is recommended.
+  # app_name: My Application # Set in docker-compose.yml
+
+  # Optional: Enable or disable the agent. Defaults to 'auto', which currently
+  # means enabled unless RAILS_ENV=test. Set to true or false to explicitly enable/disable.
+  # agent_enabled: auto
+
+  # Optional: Log level for the agent. Options are: error, warn, info, debug
+  # Logging to stdout is configured via NEW_RELIC_LOG env var in docker-compose.yml
+  log_level: info
+
+  # Optional: Monitor modes enable/disable features. See New Relic docs.
+  # monitor_mode: true
+
+  # Distributed Tracing is enabled via NEW_RELIC_DISTRIBUTED_TRACING_ENABLED env var
+
+# Environment-specific settings are merged with the common settings.
+development:
+  <<: *default_settings
+  # Development-specific settings (if any)
+  # Often good to keep app_name distinct for development
+  # app_name: My Application (Development) # Override if needed, but env var takes precedence
+
+test:
+  <<: *default_settings
+  # Disable agent in test environment for performance and to avoid sending test data
+  monitor_mode: false
+  agent_enabled: false
+
+production: # <-- This section was missing
+  <<: *default_settings
+  # Production-specific settings (if any)
+  # Ensure agent is enabled (default 'auto' should work)
+  # agent_enabled: true
+
+staging:
+  <<: *default_settings
+  # Staging-specific settings (if any)
+  # app_name: My Application (Staging) # Override if needed

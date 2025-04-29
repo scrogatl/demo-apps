@@ -1,0 +1,64 @@
+# Dockerfile.frontend
+# Dockerfile for the Rails frontend application
+
+ARG RUBY_VERSION=3.2.2
+FROM ruby:$RUBY_VERSION-slim
+
+# Set environment variables
+ENV LANG=C.UTF-8 \
+    RAILS_ENV=production \
+    BUNDLE_WITHOUT="development test" \
+    BUNDLE_JOBS=4 \
+    # Set the working directory inside the container
+    WORKDIR=/frontend
+
+# Create and set the working directory
+RUN mkdir -p $WORKDIR
+WORKDIR $WORKDIR
+
+# Install essential dependencies
+# - build-essential: For compiling native gem extensions
+# - nodejs/npm: Often needed for Rails asset pipeline
+# - git: For pulling gems from git repositories
+# - curl: Added for potential health checks or debugging
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    build-essential \
+    nodejs \
+    npm \
+    git \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install Bundler
+RUN gem install bundler --no-document
+
+# Copy Gemfile and Gemfile.lock (from the frontend directory context)
+# These need to exist in ./frontend/ relative to the build context (root)
+COPY frontend/Gemfile frontend/Gemfile.lock ./
+
+# Install gems using Bundler
+# Clean cache afterwards to reduce image size
+RUN bundle install && \
+    rm -rf /usr/local/bundle/cache/*.gem && \
+    find /usr/local/bundle/gems/ -name "*.c" -delete && \
+    find /usr/local/bundle/gems/ -name "*.o" -delete
+
+# Copy the rest of the application code into the container
+# This copies ./frontend/* from the build context to /frontend in the container
+COPY frontend/ .
+
+# Copy and set permissions for the entrypoint script
+# Copies ./frontend/entrypoint.sh to /usr/bin/ in the container
+COPY frontend/entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.sh
+
+# Expose the port the Rails app runs on
+EXPOSE 3000
+
+# Set the entrypoint script
+ENTRYPOINT ["entrypoint.sh"]
+
+# The main command to run when the container starts (will be run by entrypoint.sh)
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
