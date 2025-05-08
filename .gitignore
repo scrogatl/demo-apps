@@ -1,0 +1,165 @@
+#-------------------------------------------------------------------------------
+# System Files (macOS, Windows)
+#-------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Icon?
+
+#-------------------------------------------------------------------------------
+# IDE and Editor Specific Files
+#-------------------------------------------------------------------------------
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA / JetBrains Rider / Other JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# C# specific Visual Studio
+*.user
+*.suo
+*.sln.docstates
+
+# Swift Xcode
+xcuserdata/
+DerivedData/
+*.xcworkspace
+
+#-------------------------------------------------------------------------------
+# Dependency Directories & Lock Files
+#-------------------------------------------------------------------------------
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log*
+yarn-error.log
+
+# Python Virtual Environments
+venv/
+env/
+.env/
+
+# PHP Composer
+vendor/
+composer.lock
+
+# Ruby Gems
+vendor/bundle/
+.bundle/
+*.gem
+
+# Go
+# Note: 'vendor/' is often committed in Go projects, but ignored here based on input.
+# Consider removing 'vendor/' if you use Go modules and commit dependencies.
+# bin/ might also contain final executables you want to keep.
+# vendor/ # Covered by PHP section above
+bin/
+
+#-------------------------------------------------------------------------------
+# Build Output & Compiled Files
+#-------------------------------------------------------------------------------
+# General
+dist/
+build/
+# Java Maven/Gradle default
+target/
+# .NET build output
+obj/
+# .NET build output, Go binaries
+bin/
+
+# Python
+__pycache__/
+# Covers .pyc, .pyo, .pyd
+*.py[cod]
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# C / C++
+*.out
+*.o
+*.a
+*.lib
+*.dll
+*.so
+# Also covers Windows executables
+*.exe
+
+#-------------------------------------------------------------------------------
+# Log Files
+#-------------------------------------------------------------------------------
+*.log
+log/
+
+#-------------------------------------------------------------------------------
+# Temporary & Cache Files
+#-------------------------------------------------------------------------------
+*.tmp
+*.cache
+*.bak
+# Vim swap files
+*.swp
+.sass-cache/
+
+#-------------------------------------------------------------------------------
+# Configuration & Environment Files
+#-------------------------------------------------------------------------------
+# Sensitive environment variables (manage securely, e.g., via platform env vars)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+# Broad pattern, potentially redundant with specifics above but catches others
+*.env
+
+# Example sensitive config files (adjust paths as needed)
+# Consider if these patterns are too broad for your project structure
+config/*.yaml
+config/*.json
+
+# Terraform state (sensitive, manage remotely)
+.terraform*
+terraform.tfstate*
+
+#-------------------------------------------------------------------------------
+# Data Files
+#-------------------------------------------------------------------------------
+*.sql
+*.sqlite
+*.db
+
+#-------------------------------------------------------------------------------
+# Archives & Generated Files
+#-------------------------------------------------------------------------------
+# Specific zip files from File 1
+web/handlers/*.zip
+
+# General archives (consider if you ever need to commit archives)
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Other generated files
+*.generated
+
+#-------------------------------------------------------------------------------
+# Other
+#-------------------------------------------------------------------------------
+# GitHub specific files (optional, usually committed)
+# .github/

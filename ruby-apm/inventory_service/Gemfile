@@ -1,0 +1,9 @@
+# inventory_service/Gemfile
+source "https://rubygems.org"
+
+ruby ">= 3.2.2" # Match Ruby version with other services
+
+gem "sinatra", "~> 3.2"
+gem "thin", "~> 1.8"
+gem "newrelic_rpm"
+gem "json"

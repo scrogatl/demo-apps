@@ -1,0 +1,45 @@
+# Dockerfile.user_service
+# Dockerfile for the Sinatra User Service
+
+ARG RUBY_VERSION=3.2.2
+FROM ruby:$RUBY_VERSION-slim
+
+ENV LANG=C.UTF-8 \
+    APP_HOME=/user_service \
+    BUNDLE_WITHOUT="development test" \
+    BUNDLE_JOBS=4
+
+WORKDIR $APP_HOME
+
+# Install minimal dependencies (build-essential for gems, curl for healthcheck)
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install Bundler
+RUN gem install bundler --no-document
+
+# Copy Gemfile and Gemfile.lock (from the user_service directory context)
+COPY user_service/Gemfile* ./
+
+# Install gems using Bundler
+# Clean cache afterwards to reduce image size
+RUN bundle install && \
+    rm -rf /usr/local/bundle/cache/*.gem && \
+    find /usr/local/bundle/gems/ -name "*.c" -delete && \
+    find /usr/local/bundle/gems/ -name "*.o" -delete
+
+# Copy the application code
+COPY user_service/ .
+
+# Expose the port Sinatra runs on (internally within Docker network)
+EXPOSE 4568
+
+# Execute the Ruby script directly. Sinatra will use Thin from the Gemfile.
+CMD ["bundle", "exec", "ruby", "user_service.rb"]
+
+# Healthcheck (used by docker-compose depends_on condition)
+# Checks if the /health endpoint returns a 2xx status code
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=5 \
+  CMD curl -f http://localhost:4568/health || exit 1

@@ -1,0 +1,106 @@
+services:
+  # Frontend Service (Rails)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend # Use the frontend Dockerfile
+      args:
+        RUBY_VERSION: 3.2.2
+    container_name: ruby_frontend_rails
+    ports:
+      - "3000:3000" # Expose externally
+    volumes:
+      - bundle_cache_frontend:/usr/local/bundle/
+    environment:
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_SERVE_STATIC_FILES: "true"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      # --- New Relic Configuration (Frontend) ---
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY} # From the .env file
+      NEW_RELIC_APP_NAME: ${FRONTEND_SVC_NAME} # From the .env file
+    depends_on:
+      inventory_service: # Depends on Inventory Service
+          condition: service_healthy # Wait for inventory service to be healthy
+    networks:
+      - app_network
+
+  # Inventory Service (Sinatra)
+  inventory_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.inventory_service # Use inventory service Dockerfile
+      args:
+        RUBY_VERSION: 3.2.2
+    container_name: ruby_inventory_service_sinatra
+    volumes:
+      - bundle_cache_inventory:/usr/local/bundle/
+    environment:
+      # --- New Relic Configuration (Inventory Service) ---
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY} # From the .env file
+      NEW_RELIC_APP_NAME: ${INVENTORY_SVC_NAME} # From the .env file
+    healthcheck: # Define healthcheck matching Dockerfile
+        test: ["CMD", "curl", "-f", "http://localhost:4567/health"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 15s
+    depends_on:
+      user_service: # Depends on User Service
+          condition: service_healthy # Wait for user service to be healthy
+    networks:
+      - app_network
+
+  # User Service (Sinatra)
+  user_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.user_service # Use user service Dockerfile
+      args:
+        RUBY_VERSION: 3.2.2
+    container_name: ruby_user_service_sinatra
+    volumes:
+      - bundle_cache_user:/usr/local/bundle/
+    environment:
+      # --- New Relic Configuration (User Service) ---
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY} # From the .env file
+      NEW_RELIC_APP_NAME: ${USER_SVC_NAME} # From the .env file
+    healthcheck: # Define healthcheck matching Dockerfile
+        test: ["CMD", "curl", "-f", "http://localhost:4568/health"]
+        interval: 10s
+        timeout: 5s # Increased timeout slightly
+        retries: 5
+        start_period: 15s # Increased start period
+    networks:
+      - app_network
+
+  # Load Generator Service
+  loadgen:
+    build:
+      context: .
+      dockerfile: Dockerfile.loadgen
+      args:
+        RUBY_VERSION: 3.2.2
+    container_name: ruby_load_generator
+    depends_on:
+      frontend: # Wait for the frontend service
+        condition: service_started # Just wait for frontend to start
+      # Add explicit dependency on downstream services being healthy to ensure full stack is ready
+      inventory_service:
+        condition: service_healthy
+      user_service:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - app_network
+
+# Define named volumes for gem caching
+volumes:
+  bundle_cache_frontend:
+  bundle_cache_inventory:
+  bundle_cache_user:
+
+# Define custom network
+networks:
+  app_network:
+    driver: bridge
