@@ -144,6 +144,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     app_requirements_file          = file("${var.project_root_path}/app/requirements.txt")
     app_py_file                    = file("${var.project_root_path}/app/app.py")
     app_locustfile_file            = file("${var.project_root_path}/app/locustfile.py")
+    app_newrelic_file              = file("${var.project_root_path}/app/newrelic.ini")
     app_index_html_file            = file("${var.project_root_path}/app/templates/index.html")
     mssql_dockerfile               = file("${var.project_root_path}/mssql/Dockerfile")
     mssql_setup_sql_file           = file("${var.project_root_path}/mssql/setup_sql.sh")

@@ -34,9 +34,6 @@ COPY . .
 EXPOSE 5000
 EXPOSE 8089
 
-# Run app.py when the container launches.
-# We use the 'gevent' worker for better I/O performance and a longer timeout
-# to accommodate our intentionally slow queries.
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--worker-class", "gevent", "--timeout", "120", "app:app"]
-# TODO - revisit when ready to instrument APM
-# CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--worker-class", "gevent", "--timeout", "120", "app:app"]
+# Run app.py with NR APM when the container launches.
+# Intentionally using 1 worker to help with the blocking scenario
+CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--worker-class", "gevent", "--timeout", "120", "app:app"]

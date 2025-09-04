@@ -159,7 +159,7 @@ You can follow the setup script log here: `tail -f /usr/src/app/startup-script.l
 
 The SQL setup script log will be here: `tail -f /usr/src/app/setup-sql.log`
 
-Check the status of your containers with `docker ps -a`
+Check the ongoing status of the Docker Compose build with `watch docker ps -a`
 
 And the logs of an individual container with `docker logs <container_id> --follow`
 

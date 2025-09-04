@@ -137,6 +137,9 @@ EOF
 cat <<EOF > /opt/adventureworks/app/locustfile.py
 ${app_locustfile_file}
 EOF
+cat <<EOF > /opt/adventureworks/app/newrelic.ini
+${app_newrelic_file}
+EOF
 cat <<EOF > /opt/adventureworks/app/templates/index.html
 ${app_index_html_file}
 EOF

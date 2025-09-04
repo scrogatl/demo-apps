@@ -3,6 +3,11 @@ import pyodbc
 import logging
 from flask import Flask, render_template, jsonify
 
+# --- GEVEVENT Monkey Patching ---
+# This must be at the very top of the file before any other modules import ssl
+from gevent import monkey
+monkey.patch_all()
+
 # --- Flask App Initialization ---
 app = Flask(__name__)
 
