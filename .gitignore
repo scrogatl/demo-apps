@@ -163,3 +163,11 @@ web/handlers/*.zip
 #-------------------------------------------------------------------------------
 # GitHub specific files (optional, usually committed)
 # .github/
+
+#-------------------------------------------------------------------------------
+# azure-mssql Files
+#-------------------------------------------------------------------------------
+# SQL file to setup the DB
+!azure-mssql/mssql/stored_procedures.sql
+# Local tfvars file
+azure-mssql/terraform/terraform.tfvars
