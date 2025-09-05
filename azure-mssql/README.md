@@ -22,6 +22,8 @@ Architecture
 
 The diagram below illustrates the components of this containerized application stack. The entire environment runs within a single Azure VM.
 
+Code snippet
+
 ```mermaid
 graph LR
     subgraph "User / Load Generator"
@@ -147,13 +149,13 @@ public_ip_address = "20.x.x.x"
 You can now access the application and Locust UI in your browser.
 
 Troubleshooting
----------------------
+---------------
 
 ### Ubuntu Host
 
 SSH to the Ubuntu host from your terminal: `ssh ubuntu@<public_ip_address>`
 
-* You'll be prompted for the `admin_password` you've stored in `terraform.tfvars`
+-   You'll be prompted for the `admin_password` you've stored in `terraform.tfvars`
 
 You can follow the setup script log here: `tail -f /usr/src/app/startup-script.log`
 
@@ -170,7 +172,7 @@ Using the Application
 
 Navigate to the public IP address in your web browser: `http://<public_ip_address>:5000`
 
-The UI will present several buttons, each triggering a different type of SQL query against the AdventureWorks database. The interactive blocking scenario is designed to be triggered manually by clicking the buttons in sequence.
+The UI will present several buttons, each triggering a different type of SQL query against the AdventureWorks database.
 
 ### Load Generation with Locust
 
@@ -184,7 +186,7 @@ Navigate to the Locust UI in your browser: `http://<public_ip_address>:8089`
 
 4.  Click "Start swarming" to begin the load test.
 
-_Note: The Locust load test is designed to target the stateless query endpoints (/query/normal, /query/wait, etc.) to generate consistent, observable load. It does not simulate the interactive, stateful blocking scenario, which must be performed manually through the web UI._
+*Note: The Locust load test is designed to target the stateless query endpoints (/query/normal, /query/wait, etc.) to generate consistent, observable load.*
 
 You can now observe the incoming data in your New Relic account.
 

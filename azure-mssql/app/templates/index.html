@@ -119,35 +119,19 @@
             </div>
         </div>
 
-        <div class="scenario">
-            <h2>Database Blocking Scenario</h2>
-            <p>This is a multi-step process. First, start a transaction that holds a lock. Then, attempt a read that will be blocked. Finally, release the lock.</p>
-            <div class="buttons blocking-controls">
-                <button id="start-block-btn" onclick="runQuery('/blocking/start', true)">1. Start Blocking Transaction</button>
-                <button id="victim-btn" class="victim" onclick="runQuery('/blocking/victim')" disabled>2. Attempt Blocked Read</button>
-                <button id="release-btn" class="release" onclick="runQuery('/blocking/release', true)" disabled>3. Release Lock</button>
-            </div>
-            <p class="status"><strong>Status:</strong> Ready to start a blocking transaction.</p>
-        </div>
-
-
         <h2>Results</h2>
         <pre id="results">Awaiting query...</pre>
     </div>
 
     <script>
         const resultsEl = document.getElementById('results');
-        const startBlockBtn = document.getElementById('start-block-btn');
-        const victimBtn = document.getElementById('victim-btn');
-        const releaseBtn = document.getElementById('release-btn');
-        const statusEl = document.querySelector('.status');
-
-        async function runQuery(endpoint, isBlockingControl = false) {
+        
+        async function runQuery(endpoint) {
             resultsEl.textContent = 'Executing...';
             console.log(`[CLIENT] Executing query for endpoint: ${endpoint}`);
             try {
                 const response = await fetch(endpoint, {
-                    method: (endpoint.includes('start') || endpoint.includes('release')) ? 'POST' : 'GET'
+                    method: 'GET'
                 });
                 
                 console.log(`[CLIENT] Received response for "${endpoint}". Status: ${response.status} ${response.statusText}`, response);
@@ -160,32 +144,9 @@
                     console.error(`[CLIENT] Server returned an error for "${endpoint}":`, data.error || `HTTP status ${response.status}`);
                 }
 
-                if (isBlockingControl) {
-                    handleBlockingState(endpoint, response.ok);
-                }
-
             } catch (error) {
                 resultsEl.textContent = `Error: ${error.message}`;
                 console.error(`[CLIENT] An error occurred while fetching from endpoint "${endpoint}":`, error);
-            }
-        }
-
-        function handleBlockingState(endpoint, success) {
-            if (!success) {
-                statusEl.innerHTML = '<strong>Status:</strong> An error occurred. Please check the results and console.';
-                return;
-            }
-
-            if (endpoint === '/blocking/start') {
-                startBlockBtn.disabled = true;
-                victimBtn.disabled = false;
-                releaseBtn.disabled = false;
-                statusEl.innerHTML = '<strong>Status:</strong> <span style="color: #c62828;">Lock is active.</span> Now you can attempt the blocked read.';
-            } else if (endpoint === '/blocking/release') {
-                startBlockBtn.disabled = false;
-                victimBtn.disabled = true;
-                releaseBtn.disabled = true;
-                statusEl.innerHTML = '<strong>Status:</strong> Lock released. Ready to start a new blocking transaction.';
             }
         }
     </script>

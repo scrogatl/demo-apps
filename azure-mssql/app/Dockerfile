@@ -35,5 +35,4 @@ EXPOSE 5000
 EXPOSE 8089
 
 # Run app.py with NR APM when the container launches.
-# Intentionally using 1 worker to help with the blocking scenario
-CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--worker-class", "gevent", "--timeout", "120", "app:app"]
+CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "app:app"]
