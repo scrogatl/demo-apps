@@ -3,12 +3,11 @@ FROM mcr.microsoft.com/mssql/server:2022-latest
 # Temporarily switch to root to install dependencies
 USER root
 
-# Install required packages and the MSSQL command-line tools
-# Added 'gnupg' to the install list as it's a required dependency.
+# Install required packages using the modern, secure method for adding repository keys
 RUN apt-get update && \
     apt-get install -y curl apt-transport-https gnupg && \
-    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
-    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" > /etc/apt/sources.list.d/mssql-release.list && \
     apt-get update && \
     ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev
 
@@ -19,7 +18,7 @@ WORKDIR /usr/src/app
 
 # Copy the setup scripts and SQL files into the container
 COPY setup_sql.sh .
-COPY stored_procedures.sql .
+COPY AdventureWorks_custom.bak .
 
 # Grant execute permissions to the setup script
 RUN chmod +x setup_sql.sh

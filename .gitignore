@@ -169,5 +169,7 @@ web/handlers/*.zip
 #-------------------------------------------------------------------------------
 # SQL file to setup the DB
 !azure-mssql/mssql/stored_procedures.sql
+# Custom DB backup
+!azure-mssql/mssql/AdventureWorks_custom.bak
 # Local tfvars file
 azure-mssql/terraform/terraform.tfvars

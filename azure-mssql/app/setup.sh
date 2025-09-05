@@ -9,7 +9,7 @@ NEW_RELIC_TEAM_TAG="${new_relic_team_tag}"
 NEW_RELIC_ENVIRONMENT_TAG="${new_relic_environment_tag}"
 
 # --- Log Setup ---
-LOG_FILE="/usr/src/app/startup-script.log"
+LOG_FILE="/var/log/startup-script.log"
 # The double $$ is here to make sure it's not looking for a TF var
 exec > >(tee -a $${LOG_FILE}) 2>&1
 
@@ -149,8 +149,8 @@ EOF
 cat <<EOF > /opt/adventureworks/mssql/setup_sql.sh
 ${mssql_setup_sql_file}
 EOF
-cat <<EOF > /opt/adventureworks/mssql/stored_procedures.sql
-${mssql_stored_procedures_file}
+cat <<EOF > /opt/adventureworks/mssql/AdventureWorks_custom.bak
+${mssql_backup_file}
 EOF
 
 # --- Build and Run Docker Containers ---

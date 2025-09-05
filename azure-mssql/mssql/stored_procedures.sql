@@ -1,5 +1,5 @@
--- This script creates the stored procedures used by the Flask application
--- It's run by the setup_sql.sh script inside the MSSQL container during startup.
+---- FOR REFERENCE ONLY ----
+-- This script outlines the changes made to the vanilla AdventureWorks database. It is not actively used in the app code.
 
 USE master;
 GO

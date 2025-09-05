@@ -157,7 +157,7 @@ SSH to the Ubuntu host from your terminal: `ssh ubuntu@<public_ip_address>`
 
 -   You'll be prompted for the `admin_password` you've stored in `terraform.tfvars`
 
-You can follow the setup script log here: `tail -f /usr/src/app/startup-script.log`
+You can follow the setup script log here: `tail -f /var/log/startup-script.log`
 
 The SQL setup script log will be here: `tail -f /usr/src/app/setup-sql.log`
 

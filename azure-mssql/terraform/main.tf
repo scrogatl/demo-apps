@@ -148,7 +148,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
     app_index_html_file            = file("${var.project_root_path}/app/templates/index.html")
     mssql_dockerfile               = file("${var.project_root_path}/mssql/Dockerfile")
     mssql_setup_sql_file           = file("${var.project_root_path}/mssql/setup_sql.sh")
-    mssql_stored_procedures_file   = file("${var.project_root_path}/mssql/stored_procedures.sql")
   }))
 
   depends_on = [ azurerm_network_interface_security_group_association.nsg_assoc ]
