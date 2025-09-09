@@ -10,7 +10,7 @@ app = Flask(__name__)
 DB_SERVER = os.environ.get('DB_SERVER', 'mssql') # Use the service name from docker-compose
 DB_DATABASE = os.environ.get('DB_DATABASE', 'AdventureWorks')
 DB_USERNAME = os.environ.get('DB_USERNAME', 'sa')
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
+MSSQL_SA_PASSWORD = os.environ.get('MSSQL_SA_PASSWORD')
 
 # --- Logging Configuration ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -22,12 +22,12 @@ def get_db_connection():
         f'SERVER={DB_SERVER};'
         f'DATABASE={DB_DATABASE};'
         f'UID={DB_USERNAME};'
-        f'PWD={DB_PASSWORD};'
+        f'PWD={MSSQL_SA_PASSWORD};'
         f'TrustServerCertificate=yes;' # Necessary for self-signed certs in Docker
     )
     try:
         logging.info(f"Attempting to connect to {DB_DATABASE} on {DB_SERVER} with {DB_USERNAME} user...")
-        cnxn = pyodbc.connect(connection_string, autocommit=False) # autocommit=False for blocking scenario
+        cnxn = pyodbc.connect(connection_string, autocommit=True)
         logging.info("Database connection successful.")
         return cnxn
     except pyodbc.Error as ex:
@@ -76,7 +76,6 @@ def index():
     return render_template('index.html')
 
 # --- Standard Query Routes ---
-
 @app.route('/query/normal')
 def normal_query():
     # A typical customer ID from AdventureWorks

@@ -2,60 +2,62 @@
 # This script runs inside the MSSQL container on startup
 set -e
 
-# --- Log Setup ---
-# Direct logs to stdout, which can be viewed with 'docker logs'
-echo "Starting SQL database setup for server: $(hostname)"
+echo "=== Starting SQL database setup for server: $(hostname) ==="
 
-# Give SQL server a 20-second head start to initialize before we start polling
-echo "Waiting 20 seconds for SQL Server process to initialize..."
-sleep 20
-
-# --- Wait for SQL Server to be ready ---
-echo "Waiting for SQL Server to start..."
-wait_time=600
-for i in $(seq 1 $wait_time); do
-    # Only redirect stdout to /dev/null, so we can see any errors from sqlcmd
-    if /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -l 1 -Q "SELECT 1" > /dev/null 2>&1; then
-        echo "SQL Server is up and ready for connections."
-        break
-    else
-        echo "Still waiting for SQL Server... ($i/$wait_time)"
-        sleep 1
+# Wait for the SQL Server to be fully initialized by monitoring for tempdb readiness
+echo "=== Waiting for SQL Server to finish initialization... ==="
+MAX_TRIES=60
+TRIES=0
+# The until loop continues until the sqlcmd command successfully finds 'tempdb'.
+# -W removes trailing whitespace and -h-1 removes headers for clean output.
+# grep -q is "quiet mode", it just returns a success/failure exit code.
+until /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -W -h-1 -Q "SET NOCOUNT ON; SELECT name FROM sys.databases WHERE name = N'tempdb'" | grep -q "tempdb"
+do
+    TRIES=$((TRIES + 1))
+    if [ "$TRIES" -ge "$MAX_TRIES" ]; then
+        echo "=== Error: SQL Server did not become available within "$MAX_TRIES" attempts. ==="
+        exit 1
     fi
+    echo "=== SQL Server is unavailable - sleeping for 5s (Attempt ${TRIES}/${MAX_TRIES}) ==="
+    sleep 5
 done
 
-# Check if the loop completed without a successful connection
-if ! /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -l 1 -Q "SELECT 1" > /dev/null 2>&1; then
-    echo "Error: SQL Server did not start within the timeout period."
-    exit 1
-fi
-
+echo "=== SQL Server is ready. Starting the AdventureWorks restore... ==="
 # --- Database Restore and Configuration ---
-DB_NAME="AdventureWorks"
-BAK_FILE_URL=""
-BAK_FILE_PATH="/usr/src/app/AdventureWorks_custom.bak"
-
-echo "Downloading AdventureWorks custom backup file from URL: $BAK_FILE_URL"
 # Download the backup file to the container's local disk
-curl -L -o "$BAK_FILE_PATH" "$BAK_FILE_URL"
+echo "=== Downloading database backup file... ==="
+curl -L "https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks/AdventureWorks2022.bak" > "/tmp/AdventureWorks2022.bak"
 if [ $? -ne 0 ]; then
-    echo "Error: Failed to download the backup file."
+    echo "=== Error: Failed to download the backup file. ==="
     exit 1
 fi
-echo "Download complete."
-
-echo "Restoring database from disk..."
+echo "=== Download complete. ==="
 
 # Restore the database from the local backup file
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -d master -Q "RESTORE DATABASE [$DB_NAME] FROM DISK = N'$BAK_FILE_PATH' WITH FILE = 1, NOUNLOAD, REPLACE, STATS = 5"
+echo "=== Restoring database from disk... ==="
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -d master -Q "RESTORE DATABASE [AdventureWorks] FROM DISK = N'/tmp/AdventureWorks2022.bak' WITH FILE = 1, NOUNLOAD, REPLACE, STATS = 5, MOVE 'AdventureWorks2022' TO '/var/opt/mssql/data/AdventureWorks2022.mdf', MOVE 'AdventureWorks2022_log' TO '/var/opt/mssql/data/AdventureWorks2022_log.ldf'"
+
 if [ $? -ne 0 ]; then
-    echo "Error: Database restore failed."
+    echo "=== Error: Database restore failed. ==="
     exit 1
 fi
-echo "Database restore successful."
+echo "=== Database restore successful. ==="
+
+# Run the stored procedure script
+echo "=== Running stored procedure setup script... ==="
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -d AdventureWorks -i ./stored_procedures.sql
+if [ $? -ne 0 ]; then
+    echo "=== Error: Stored procedure script failed. ==="
+    exit 1
+fi
+echo "=== Stored procedures created successfully. ==="
 
 # Clean up the backup file to save space
-rm "$BAK_FILE_PATH"
-echo "Backup file cleaned up."
+rm /tmp/AdventureWorks2022.bak
+echo "=== Backup file cleaned up. ==="
 
-echo "--- SQL database setup is complete. ---"
+echo "--- === SQL database setup is complete. SQL Server is running. ===  ---"
+
+# 'wait' tells the script to pause here and wait for the SQL
+# Server process to exit. This keeps the container alive.
+wait $SQL_SERVER_PID

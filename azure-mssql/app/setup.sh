@@ -3,7 +3,7 @@ set -e
 
 # --- Configuration Passed from Terraform ---
 PROJECT_PREFIX="${project_prefix}"
-SQL_PASSWORD="${sql_password}"
+MSSQL_SA_PASSWORD="${mssql_sa_password}"
 NEW_RELIC_LICENSE_KEY="${new_relic_license_key}"
 NEW_RELIC_TEAM_TAG="${new_relic_team_tag}"
 NEW_RELIC_ENVIRONMENT_TAG="${new_relic_environment_tag}"
@@ -34,10 +34,12 @@ sudo usermod -aG docker ubuntu
 echo "Installing New Relic Infrastructure Agent..."
 
 # Enable New Relic's GPG key
-curl -s https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add -
+#curl -s https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add -
+curl -s https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo gpg --dearmor -o /usr/share/keyrings/newrelic-infra.gpg
 
 # Add the infrastructure agent repository
-printf "deb [arch=amd64] https://download.newrelic.com/infrastructure_agent/linux/apt focal main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list
+#printf "deb [arch=amd64] https://download.newrelic.com/infrastructure_agent/linux/apt focal main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/newrelic-infra.gpg] https://download.newrelic.com/infrastructure_agent/linux/apt jammy main" | sudo tee /etc/apt/sources.list.d/newrelic-infra.list
 
 # Refresh the repositories
 sudo apt-get update
@@ -83,7 +85,7 @@ integrations:
       HOSTNAME: localhost
       PORT: 1433
       USERNAME: sa
-      PASSWORD: $${SQL_PASSWORD}
+      PASSWORD: $${MSSQL_SA_PASSWORD}
       ENABLE_QUERY_MONITORING: true
       # Set to 1 to ensure we capture 'slow' queries for a demo
       QUERY_MONITORING_RESPONSE_TIME_THRESHOLD: 1
@@ -113,10 +115,16 @@ cat <<EOF > /opt/adventureworks/docker-compose.yml
 ${docker_compose_file}
 EOF
 
+# Run Stored Procedures script
+cat <<EOF > /opt/adventureworks/run_stored_procedures.sh
+${stored_procedures_file}
+EOF
+chmod +x /opt/adventureworks/run_stored_procedures.sh
+
 # --- Set up Environment for Docker Compose ---
 echo "Creating .env file for Docker Compose..."
 cat <<EOF > /opt/adventureworks/.env
-SQL_PASSWORD=$${SQL_PASSWORD}
+MSSQL_SA_PASSWORD=$${MSSQL_SA_PASSWORD}
 PROJECT_PREFIX=$${PROJECT_PREFIX}
 NEW_RELIC_LICENSE_KEY=$${NEW_RELIC_LICENSE_KEY}
 EOF
@@ -140,8 +148,11 @@ EOF
 cat <<EOF > /opt/adventureworks/app/newrelic.ini
 ${app_newrelic_file}
 EOF
-cat <<EOF > /opt/adventureworks/app/templates/index.html
+cat <<'EOF' > /opt/adventureworks/app/templates/index.html
 ${app_index_html_file}
+EOF
+cat <<EOF > /opt/adventureworks/app/templates/logo.svg
+${app_icon_file}
 EOF
 cat <<EOF > /opt/adventureworks/mssql/Dockerfile
 ${mssql_dockerfile}
@@ -149,8 +160,11 @@ EOF
 cat <<EOF > /opt/adventureworks/mssql/setup_sql.sh
 ${mssql_setup_sql_file}
 EOF
-cat <<EOF > /opt/adventureworks/mssql/AdventureWorks_custom.bak
-${mssql_backup_file}
+cat <<EOF > /opt/adventureworks/mssql/stored_procedures.sql
+${mssql_stored_procs_file}
+EOF
+cat <<EOF > /opt/adventureworks/mssql/entrypoint.sh
+${mssql_entrypoint_file}
 EOF
 
 # --- Build and Run Docker Containers ---

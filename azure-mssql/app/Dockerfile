@@ -11,7 +11,7 @@ USER root
 RUN apt-get update && \
     apt-get install -y curl gnupg unixodbc-dev
 
-# Add Microsoft's official repository for the ODBC driver using the modern, secure method
+# Add Microsoft's official repository for the ODBC driver
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg && \
     echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql-release.list
 
@@ -35,4 +35,4 @@ EXPOSE 5000
 EXPOSE 8089
 
 # Run app.py with NR APM when the container launches.
-CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "app:app"]
+CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "120", "app:app"]
