@@ -135,21 +135,24 @@ resource "azurerm_linux_virtual_machine" "vm" {
   # cloud-init script for setup
   custom_data = base64encode(templatefile("${var.project_root_path}/app/setup.sh", {
     project_prefix                 = var.project_prefix
-    sql_password                   = var.sql_password
+    mssql_sa_password              = var.mssql_sa_password
     new_relic_license_key          = var.new_relic_license_key
     new_relic_team_tag             = var.new_relic_team_tag
     new_relic_environment_tag      = var.new_relic_environment_tag
     docker_compose_file            = file("${var.project_root_path}/docker-compose.yml")
+    stored_procedures_file         = file("${var.project_root_path}/run_stored_procedures.sh")
     app_dockerfile                 = file("${var.project_root_path}/app/Dockerfile")
     app_requirements_file          = file("${var.project_root_path}/app/requirements.txt")
     app_py_file                    = file("${var.project_root_path}/app/app.py")
     app_locustfile_file            = file("${var.project_root_path}/app/locustfile.py")
+    app_newrelic_file              = file("${var.project_root_path}/app/newrelic.ini")
     app_index_html_file            = file("${var.project_root_path}/app/templates/index.html")
+    app_icon_file                  = file("${var.project_root_path}/app/templates/logo.svg")
     mssql_dockerfile               = file("${var.project_root_path}/mssql/Dockerfile")
     mssql_setup_sql_file           = file("${var.project_root_path}/mssql/setup_sql.sh")
-    mssql_stored_procedures_file   = file("${var.project_root_path}/mssql/stored_procedures.sql")
+    mssql_stored_procs_file        = file("${var.project_root_path}/mssql/stored_procedures.sql")
+    mssql_entrypoint_file          = file("${var.project_root_path}/mssql/entrypoint.sh")
   }))
 
   depends_on = [ azurerm_network_interface_security_group_association.nsg_assoc ]
 }
-

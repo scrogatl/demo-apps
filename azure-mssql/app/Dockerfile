@@ -11,7 +11,7 @@ USER root
 RUN apt-get update && \
     apt-get install -y curl gnupg unixodbc-dev
 
-# Add Microsoft's official repository for the ODBC driver using the modern, secure method
+# Add Microsoft's official repository for the ODBC driver
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg && \
     echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql-release.list
 
@@ -34,9 +34,5 @@ COPY . .
 EXPOSE 5000
 EXPOSE 8089
 
-# Run app.py when the container launches.
-# We use the 'gevent' worker for better I/O performance and a longer timeout
-# to accommodate our intentionally slow queries.
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--worker-class", "gevent", "--timeout", "120", "app:app"]
-# TODO - revisit when ready to instrument APM
-# CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--worker-class", "gevent", "--timeout", "120", "app:app"]
+# Run app.py with NR APM when the container launches.
+CMD ["newrelic-admin", "run-program", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "120", "app:app"]

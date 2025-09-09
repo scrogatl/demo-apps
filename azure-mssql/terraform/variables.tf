@@ -32,7 +32,7 @@ variable "vm_size" {
   default     = "Standard_D4s_v3" # A size with enough memory for SQL Server
 }
 
-variable "sql_password" {
+variable "mssql_sa_password" {
   description = "The SA password for the SQL Server container. Must be complex."
   type        = string
   sensitive   = true

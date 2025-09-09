@@ -1,5 +1,5 @@
 flask==3.1.2
 pyodbc==5.2.0
-newrelic==10.16.0
+newrelic
 locust==2.39.1
 gunicorn==23.0.0

@@ -3,8 +3,8 @@ project_prefix = "mssql-docker-demo"
 
 # The admin password for the VM (SSH) and SQL Managed Instance.
 # MUST be complex (e.g., "P@ssw0rd12345!")
-admin_password = ""
-sql_password   = "YourComplexSQLPassword123!"
+admin_password      = "YourComplexSQLPassword123!"
+mssql_sa_password   = "YourComplexSQLPassword123!"
 
 # Your local public IP address. Find it by searching "what is my ip" in Google.
 # This is required to secure access to the VM.

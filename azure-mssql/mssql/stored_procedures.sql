@@ -1,5 +1,7 @@
--- This script creates the stored procedures used by the Flask application
--- It's run by the setup_sql.sh script inside the MSSQL container during startup.
+-- this script runs the changes necessary to enable full NR instrumentation
+-- and turns on the stored procs the app needs to run
+-- in a production environment you would also create a 'newrelic' user
+-- for least-privileged database access
 
 USE master;
 GO
@@ -41,7 +43,6 @@ END;
 GO
 PRINT 'Created GetRecentCustomerOrders stored procedure.';
 
-
 -- =================================================================
 -- 2. Query with Waits (Simulated Slowdown)
 -- Scenario: A manager requests a summary report that simulates a
@@ -55,8 +56,8 @@ CREATE PROCEDURE dbo.GenerateSlowSummaryReport
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Introduce an artificial 3-second delay
-    WAITFOR DELAY '00:00:03';
+    -- Introduce an artificial 5-second delay
+    WAITFOR DELAY '00:00:05';
 
     SELECT pc.Name AS Category,
            p.Name AS Product,
@@ -70,7 +71,6 @@ BEGIN
 END;
 GO
 PRINT 'Created GenerateSlowSummaryReport stored procedure.';
-
 
 -- =================================================================
 -- 3. Query with Problems (Missing Index)
@@ -107,11 +107,11 @@ END;
 GO
 PRINT 'Created FindPersonByLastName stored procedure.';
 
-
 -- =================================================================
 -- 4. Queries for Blocking Scenario
 -- Scenario: Simulate resource contention where one process holds
 -- a lock on a product's inventory, blocking another process.
+-- !! THIS IS NOT IN USE AT THIS TIME !!
 -- =================================================================
 
 -- Procedure to start a transaction and update inventory without committing
@@ -136,7 +136,6 @@ BEGIN
 END;
 GO
 PRINT 'Created UpdateProductInventory stored procedure.';
-
 
 -- Procedure to read the inventory (this will be the "victim" of the block)
 IF OBJECT_ID('dbo.GetProductInventory', 'P') IS NOT NULL
