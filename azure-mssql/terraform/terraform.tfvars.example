@@ -11,6 +11,6 @@ mssql_sa_password   = "YourComplexSQLPassword123!"
 my_ip_address = ""
 
 # Details for New Relic instrumentation
-new_relic_ingest_license_key = "YOUR_INGEST_LICENSE_KEY"
+new_relic_license_key        = "YOUR_INGEST_LICENSE_KEY"
 new_relic_team_tag           = ""
 new_relic_environment_tag.   = ""
