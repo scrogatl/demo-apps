@@ -1,0 +1,16 @@
+# Sets the default region.
+aws_region = ""
+
+# --- IMPORTANT ---
+# For better security, change this to your own IP address with a /32 suffix.
+# (e.g., "1.2.3.4/32")
+# You can find your IP by searching "what is my IP" in Google.
+ssh_ingress_cidr = "0.0.0.0/0"
+
+# --- New Relic Configuration ---
+# Fill these in with your New Relic credentials before applying.
+new_relic_api_key    = "YOUR_NR_API_KEY"
+new_relic_account_id = "YOUR_NR_ACCOUNT_ID"
+
+# --- EC2 SSH Key ---
+ec2_key_name = ""
