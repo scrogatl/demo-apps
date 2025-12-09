@@ -52,6 +52,15 @@ Choose one of the following Kubernetes environments:
 - [Rancher Desktop](https://rancherdesktop.io/) installed
 - kubectl installed (comes with Rancher Desktop)
 
+### Option 3: Docker Compose (Local Development)
+- Docker installed (Docker Desktop or native Docker)
+- docker-compose installed
+
+### Option 4: Native Ubuntu (eBPF Optimized)
+- Ubuntu 20.04+ (or other Debian-based Linux)
+- Sudo privileges
+- Internet connection for package installation
+
 ## Quick Start
 
 ### For Minikube
@@ -104,6 +113,117 @@ kubectl port-forward service/api-gateway 8080:8080
 # Or access directly via NodePort
 curl http://localhost:30080/health
 ```
+
+### For Docker Compose
+
+1. Build and start all services:
+```bash
+docker-compose up --build -d
+```
+
+This will:
+- Build all container images
+- Create a Docker network for service communication
+- Start PostgreSQL, user-service, order-service, api-gateway, and load-generator
+- Expose the API gateway on port 8080
+
+2. View logs:
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f api-gateway
+```
+
+3. Access the API gateway:
+```bash
+curl http://localhost:8080/health
+```
+
+4. Stop all services:
+```bash
+docker-compose down
+
+# To also remove volumes
+docker-compose down -v
+```
+
+### For Native Ubuntu
+
+1. Run the deployment script:
+```bash
+./scripts/deploy-native-ubuntu.sh
+```
+
+This script will:
+- Install Node.js, Rust, PostgreSQL, and build dependencies
+- Set up the PostgreSQL database and user
+- Build the Rust api-gateway
+- Install npm dependencies for all Node.js services
+- Create systemd user service files
+- Start all services
+
+2. Check service status:
+```bash
+systemctl --user status eapm-api-gateway
+systemctl --user status eapm-user-service
+systemctl --user status eapm-order-service
+systemctl --user status eapm-load-generator
+```
+
+3. View logs:
+```bash
+# Real-time logs
+journalctl --user -u eapm-api-gateway -f
+
+# All logs for a service
+journalctl --user -u eapm-user-service
+```
+
+4. Access the API gateway:
+```bash
+curl http://localhost:8080/health
+```
+
+5. Stop all services:
+```bash
+systemctl --user stop eapm-api-gateway eapm-user-service eapm-order-service eapm-load-generator
+```
+
+6. Complete cleanup:
+```bash
+./scripts/cleanup-native-ubuntu.sh
+```
+
+## eBPF Observability
+
+This application is designed to demonstrate eBPF-based observability. Different deployment methods provide varying levels of eBPF visibility:
+
+### Kubernetes (Minikube/Rancher Desktop)
+- ✅ **Pod-to-pod network traffic**: eBPF can monitor all inter-service communication
+- ✅ **Syscalls and process tracing**: Full visibility into container processes
+- ✅ **HTTP request/response monitoring**: Can trace API calls between services
+- 📊 **Standard deployment for eBPF tools**: New Relic, Pixie, Cilium, etc.
+
+### Docker Compose
+- ✅ **Container network traffic**: eBPF can monitor bridge/veth networking
+- ✅ **Syscalls and process tracing**: Full visibility with minimal overhead
+- ✅ **HTTP request/response monitoring**: Complete observability of service interactions
+- 📊 **Well-supported by eBPF tools**: Works with most eBPF-based APM solutions
+- ⚡ **Lighter weight than Kubernetes**: Less overhead, easier local development
+
+### Native Ubuntu Processes
+- ✅ **Maximum eBPF visibility**: No container abstraction layer
+- ✅ **Direct kernel access**: Most efficient tracing possible
+- ✅ **Network socket monitoring**: Direct visibility into TCP/HTTP traffic
+- 📊 **Best for eBPF development**: Ideal for testing eBPF programs
+- ⚡ **Lowest overhead**: No Docker or Kubernetes networking layers
+
+**Key Point**: All three deployment methods on Linux provide full eBPF observability. The choice depends on your use case:
+- **Kubernetes**: Production-like environment
+- **Docker Compose**: Quick local testing
+- **Native processes**: Maximum performance and eBPF visibility
 
 ## API Endpoints
 
@@ -206,6 +326,8 @@ The eBPF instrumentation will automatically discover and monitor all services in
 
 ## Cleanup
 
+### Kubernetes (Minikube/Rancher Desktop)
+
 To remove all deployed resources and images:
 
 ```bash
@@ -219,6 +341,36 @@ This script will:
 - Prune dangling Docker images
 
 **Note:** The postgres:16-alpine base image is removed from Minikube by default but kept on the host machine. To also remove it from your host, uncomment the relevant line in `scripts/cleanup.sh`.
+
+### Docker Compose
+
+To stop and remove all containers and networks:
+
+```bash
+docker-compose down
+
+# To also remove volumes (database data)
+docker-compose down -v
+
+# To also remove images
+docker-compose down --rmi all
+```
+
+### Native Ubuntu
+
+To stop services and clean up:
+
+```bash
+./scripts/cleanup-native-ubuntu.sh
+```
+
+This script will:
+- Stop and disable all systemd services
+- Remove systemd service files
+- Clean build artifacts (Rust target/, Node.js node_modules/)
+- Optionally remove the PostgreSQL database
+
+**Note:** System packages (Node.js, Rust, PostgreSQL) are preserved and must be removed manually if desired.
 
 ## Troubleshooting
 
@@ -356,6 +508,9 @@ eapm-minikube/
 │   ├── build-images.sh
 │   ├── deploy-minikube.sh
 │   ├── deploy-rancher.sh
-│   └── cleanup.sh
+│   ├── deploy-native-ubuntu.sh
+│   ├── cleanup.sh
+│   └── cleanup-native-ubuntu.sh
+├── docker-compose.yml    # Docker Compose configuration
 └── README.md
 ```
