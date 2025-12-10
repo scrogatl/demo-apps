@@ -224,7 +224,6 @@ This application is designed to demonstrate eBPF-based observability. Different 
 - ✅ **Pod-to-pod network traffic**: eBPF can monitor all inter-service communication
 - ✅ **Syscalls and process tracing**: Full visibility into container processes
 - ✅ **HTTP request/response monitoring**: Can trace API calls between services
-- 📊 **Production deployment for eBPF tools**: New Relic, Pixie, Cilium, etc.
 - 🌐 **Real cloud environment**: Most representative of production scenarios
 
 ### Docker Compose
