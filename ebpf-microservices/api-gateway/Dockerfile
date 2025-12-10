@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Disable SSL verification for cargo (corporate proxy workaround)
+ENV CARGO_HTTP_CHECK_REVOKE=false
+
 # Copy manifests
 COPY Cargo.toml ./
 
