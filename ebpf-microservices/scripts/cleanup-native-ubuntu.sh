@@ -3,7 +3,7 @@
 set -e
 
 echo "========================================="
-echo "EAPM Native Ubuntu Cleanup"
+echo "eBPF Native Ubuntu Cleanup"
 echo "========================================="
 echo ""
 

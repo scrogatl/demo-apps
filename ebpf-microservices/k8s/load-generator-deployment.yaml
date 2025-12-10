@@ -17,7 +17,7 @@ spec:
       containers:
       - name: load-generator
         image: load-generator:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         env:
         - name: API_GATEWAY_URL
           value: "http://api-gateway:8080"

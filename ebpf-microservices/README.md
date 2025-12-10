@@ -1,4 +1,4 @@
-# EAPM Minikube Demo Application
+# eBPF Demo Application
 
 A sample microservices application for demonstrating New Relic's eBPF instrumentation capabilities. This application consists of multiple services orchestrated with Kubernetes and includes passive load generation for realistic traffic patterns.
 
@@ -40,78 +40,98 @@ This demo application includes:
 
 ## Prerequisites
 
-Choose one of the following Kubernetes environments:
+Choose one of the following deployment environments:
 
-### Option 1: Minikube
-- [Minikube](https://minikube.sigs.k8s.io/docs/start/) installed
-- Docker installed (Docker Desktop or native Docker)
-- kubectl installed
-- Host machine must have access to Docker Hub (for pulling base images like postgres)
+### Kubernetes (Cloud Provider)
+- Access to a Kubernetes cluster on a cloud provider (AWS EKS, Google GKE, Azure AKS, etc.)
+- kubectl installed and configured to connect to your cluster
+- Docker installed locally (for building and pushing images)
+- Access to a container registry (Docker Hub, ECR, GCR, ACR, etc.)
 
-### Option 2: Rancher Desktop
-- [Rancher Desktop](https://rancherdesktop.io/) installed
-- kubectl installed (comes with Rancher Desktop)
-
-### Option 3: Docker Compose (Local Development)
+### Docker Compose (Local Development)
 - Docker installed (Docker Desktop or native Docker)
 - docker-compose installed
+- **System Requirements:**
+  - CPU: 2-4 cores
+  - Memory: 4-8 GB RAM
+  - Disk: 10-20 GB free space
 
-### Option 4: Native Ubuntu (eBPF Optimized)
+### Native Ubuntu (Local eBPF Testing)
 - Ubuntu 20.04+ (or other Debian-based Linux)
 - Sudo privileges
 - Internet connection for package installation
+- **System Requirements:**
+  - CPU: 2-4 cores
+  - Memory: 4-8 GB RAM
+  - Disk: 10-20 GB free space (for dependencies and build artifacts)
 
 ## Quick Start
 
-### For Minikube
+### For Kubernetes (Cloud Provider)
 
-1. Start Minikube (if not already running):
+1. Configure your container registry:
 ```bash
-minikube start
+# Set your container registry URL (replace with your registry)
+export REGISTRY="your-registry.io/your-namespace"
+
+# Examples:
+# export REGISTRY="docker.io/your-username"
+# export REGISTRY="123456789.dkr.ecr.us-east-1.amazonaws.com"
+# export REGISTRY="gcr.io/your-project"
+# export REGISTRY="your-registry.azurecr.io"
 ```
 
-2. Deploy the application:
+2. Build and push images:
 ```bash
-./scripts/deploy-minikube.sh
+# Build all images
+./scripts/build-images.sh
+
+# Tag images for your registry
+docker tag api-gateway:latest $REGISTRY/api-gateway:latest
+docker tag user-service:latest $REGISTRY/user-service:latest
+docker tag order-service:latest $REGISTRY/order-service:latest
+docker tag load-generator:latest $REGISTRY/load-generator:latest
+
+# Push to your registry
+docker push $REGISTRY/api-gateway:latest
+docker push $REGISTRY/user-service:latest
+docker push $REGISTRY/order-service:latest
+docker push $REGISTRY/load-generator:latest
 ```
 
-This script will:
-- Pull required base images (postgres) on your host machine
-- Build all application container images on your host machine
-- Load all images into Minikube
-- Apply all Kubernetes manifests
-- Wait for all deployments to be ready
-
-3. Access the API gateway:
+3. Update the Kubernetes manifests with your registry:
 ```bash
-# Get the service URL
-minikube service api-gateway --url
-
-# Or use port forwarding
-kubectl port-forward service/api-gateway 8080:8080
+# Update image references in the deployment files
+sed -i '' "s|image: api-gateway:latest|image: $REGISTRY/api-gateway:latest|g" k8s/api-gateway-deployment.yaml
+sed -i '' "s|image: user-service:latest|image: $REGISTRY/user-service:latest|g" k8s/user-service-deployment.yaml
+sed -i '' "s|image: order-service:latest|image: $REGISTRY/order-service:latest|g" k8s/order-service-deployment.yaml
+sed -i '' "s|image: load-generator:latest|image: $REGISTRY/load-generator:latest|g" k8s/load-generator-deployment.yaml
 ```
 
-### For Rancher Desktop
-
-1. Ensure Rancher Desktop is running with Kubernetes enabled
-
-2. Deploy the application:
+4. Deploy to your cluster:
 ```bash
-./scripts/deploy-rancher.sh
+# Ensure kubectl is configured for your cluster
+kubectl cluster-info
+
+# Apply all Kubernetes manifests
+kubectl apply -f k8s/
+
+# Wait for deployments to be ready
+kubectl wait --for=condition=available --timeout=300s deployment/postgres
+kubectl wait --for=condition=available --timeout=300s deployment/user-service
+kubectl wait --for=condition=available --timeout=300s deployment/order-service
+kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
+kubectl wait --for=condition=available --timeout=300s deployment/load-generator
 ```
 
-This script will:
-- Build all container images using nerdctl or docker
-- Apply all Kubernetes manifests
-- Wait for all deployments to be ready
-
-3. Access the API gateway:
+5. Access the API gateway:
 ```bash
 # Use port forwarding
 kubectl port-forward service/api-gateway 8080:8080
 
-# Or access directly via NodePort
-curl http://localhost:30080/health
+# Or expose via LoadBalancer (cloud providers)
+kubectl patch service api-gateway -p '{"spec":{"type":"LoadBalancer"}}'
+kubectl get service api-gateway  # Get the external IP
 ```
 
 ### For Docker Compose
@@ -200,11 +220,12 @@ systemctl --user stop eapm-api-gateway eapm-user-service eapm-order-service eapm
 
 This application is designed to demonstrate eBPF-based observability. Different deployment methods provide varying levels of eBPF visibility:
 
-### Kubernetes (Minikube/Rancher Desktop)
+### Kubernetes (Cloud Provider)
 - ✅ **Pod-to-pod network traffic**: eBPF can monitor all inter-service communication
 - ✅ **Syscalls and process tracing**: Full visibility into container processes
 - ✅ **HTTP request/response monitoring**: Can trace API calls between services
-- 📊 **Standard deployment for eBPF tools**: New Relic, Pixie, Cilium, etc.
+- 📊 **Production deployment for eBPF tools**: New Relic, Pixie, Cilium, etc.
+- 🌐 **Real cloud environment**: Most representative of production scenarios
 
 ### Docker Compose
 - ✅ **Container network traffic**: eBPF can monitor bridge/veth networking
@@ -221,9 +242,9 @@ This application is designed to demonstrate eBPF-based observability. Different 
 - ⚡ **Lowest overhead**: No Docker or Kubernetes networking layers
 
 **Key Point**: All three deployment methods on Linux provide full eBPF observability. The choice depends on your use case:
-- **Kubernetes**: Production-like environment
-- **Docker Compose**: Quick local testing
-- **Native processes**: Maximum performance and eBPF visibility
+- **Kubernetes**: Production environment with cloud infrastructure
+- **Docker Compose**: Quick local testing and development
+- **Native processes**: Maximum performance and eBPF visibility for testing
 
 ## API Endpoints
 
@@ -312,9 +333,11 @@ kubectl get services
 
 ## Installing New Relic eBPF Instrumentation
 
-This application is designed to easily accept New Relic's eBPF instrumentation via Helm chart.
+This application is designed to easily accept New Relic's eBPF instrumentation.
 
-### Prerequisites
+### For Kubernetes Deployments
+
+**Prerequisites:**
 - Helm 3 installed (check with `helm version`)
 - New Relic account and license key
 
@@ -324,23 +347,37 @@ For complete installation instructions, please refer to the official documentati
 
 The eBPF instrumentation will automatically discover and monitor all services in the cluster once installed.
 
+### For Host-Based Deployments (Docker Compose or Native Ubuntu)
+
+For Docker Compose or native Ubuntu deployments, use the host-based installation method:
+
+[New Relic eBPF Linux/Host Installation Guide](https://docs.newrelic.com/docs/ebpf/linux-installation/)
+
+This method installs the eBPF agent directly on the host system and monitors all processes and network traffic.
+
+**Note:** Ensure your VM meets the system requirements listed in the Prerequisites section (2-4 CPU cores, 4-8 GB RAM, 10-20 GB disk space) to run both the application and the eBPF agent.
+
 ## Cleanup
 
-### Kubernetes (Minikube/Rancher Desktop)
+### Kubernetes (Cloud Provider)
 
-To remove all deployed resources and images:
+To remove all deployed resources:
 
 ```bash
-./scripts/cleanup.sh
+# Delete all Kubernetes resources
+kubectl delete -f k8s/
+
+# Optionally, remove images from your local machine
+docker rmi api-gateway:latest
+docker rmi user-service:latest
+docker rmi order-service:latest
+docker rmi load-generator:latest
+
+# Clean up dangling images
+docker image prune -f
 ```
 
-This script will:
-- Delete all Kubernetes resources (deployments, services, configmaps, secrets, PVCs)
-- Remove application images from Minikube (if using Minikube)
-- Remove application images from host Docker
-- Prune dangling Docker images
-
-**Note:** The postgres:16-alpine base image is removed from Minikube by default but kept on the host machine. To also remove it from your host, uncomment the relevant line in `scripts/cleanup.sh`.
+**Note:** Images in your container registry will need to be removed separately using your registry's management tools.
 
 ### Docker Compose
 
@@ -391,44 +428,42 @@ kubectl logs deployment/order-service
 ```
 
 ### Image pull errors
-For Minikube, if images are not found, rebuild and reload them:
-```bash
-# Pull base images on host machine
-docker pull postgres:16-alpine
+If your cluster cannot pull images from your registry:
 
-# Build application images on host machine
-./scripts/build-images.sh
-
-# Load all images into Minikube
-minikube image load postgres:16-alpine
-minikube image load api-gateway:latest
-minikube image load user-service:latest
-minikube image load order-service:latest
-minikube image load load-generator:latest
-```
-
-Note: Minikube's internal Docker daemon may not have internet access depending on your network configuration. Building images on the host machine (which can access Docker Hub via Docker Desktop or direct Docker access) and loading them into Minikube avoids this issue.
-
-For Rancher Desktop, images should be available automatically after building.
-
-### Cannot access Docker Hub from host machine
-If your host machine cannot access Docker Hub (e.g., corporate network restrictions), you have a few options:
-
-1. **Use a machine with Docker Hub access**: Deploy from a personal machine or a VM that has internet access
-2. **Use Rancher Desktop instead**: If eBPF requirements are not needed, Rancher Desktop may handle image pulls differently
-3. **Pre-download images**: On a machine with access, save images and transfer them:
+1. **Verify registry authentication**: Ensure your cluster has the proper credentials
    ```bash
-   # On machine with access
-   docker pull postgres:16-alpine
-   docker save postgres:16-alpine -o postgres.tar
+   # For Docker Hub
+   kubectl create secret docker-registry regcred \
+     --docker-server=https://index.docker.io/v1/ \
+     --docker-username=<your-username> \
+     --docker-password=<your-password> \
+     --docker-email=<your-email>
 
-   # Transfer postgres.tar to target machine, then:
-   docker load -i postgres.tar
-   minikube image load postgres:16-alpine
+   # For AWS ECR
+   kubectl create secret docker-registry regcred \
+     --docker-server=<aws-account-id>.dkr.ecr.<region>.amazonaws.com \
+     --docker-username=AWS \
+     --docker-password=$(aws ecr get-login-password)
+
+   # Add secret to service account
+   kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "regcred"}]}'
+   ```
+
+2. **Verify images are pushed**: Check that images exist in your registry
+   ```bash
+   docker images | grep api-gateway
+   docker images | grep user-service
+   docker images | grep order-service
+   docker images | grep load-generator
+   ```
+
+3. **Check image references**: Ensure deployment files reference the correct registry
+   ```bash
+   grep "image:" k8s/*-deployment.yaml
    ```
 
 ### Port conflicts
-If port 8080 or 30080 is already in use, you can modify the port forwarding:
+If port 8080 is already in use locally, you can modify the port forwarding:
 ```bash
 kubectl port-forward service/api-gateway 8081:8080
 ```
@@ -452,22 +487,21 @@ docker build -t load-generator:latest ./load-generator
 
 After making changes to any service:
 
-For Minikube:
 ```bash
-# Build images on host
-./scripts/build-images.sh
+# Build the updated image
+docker build -t <service-name>:latest ./<service-name>
 
-# Load updated images into Minikube
-minikube image load <service-name>:latest
+# Tag for your registry
+docker tag <service-name>:latest $REGISTRY/<service-name>:latest
 
-# Restart the deployment
+# Push to registry
+docker push $REGISTRY/<service-name>:latest
+
+# Update the deployment (triggers rolling update)
 kubectl rollout restart deployment/<service-name>
-```
 
-For Rancher Desktop:
-```bash
-./scripts/build-images.sh
-kubectl rollout restart deployment/<service-name>
+# Monitor the rollout
+kubectl rollout status deployment/<service-name>
 ```
 
 ### Load Generator Configuration
@@ -481,7 +515,7 @@ The load generator can be configured via environment variables in `k8s/load-gene
 ## Project Structure
 
 ```
-eapm-minikube/
+ebpf-microservices/
 ├── api-gateway/          # Rust API gateway service
 │   ├── src/
 │   ├── Cargo.toml
@@ -506,10 +540,7 @@ eapm-minikube/
 │   └── load-generator-deployment.yaml
 ├── scripts/              # Deployment scripts
 │   ├── build-images.sh
-│   ├── deploy-minikube.sh
-│   ├── deploy-rancher.sh
 │   ├── deploy-native-ubuntu.sh
-│   ├── cleanup.sh
 │   └── cleanup-native-ubuntu.sh
 ├── docker-compose.yml    # Docker Compose configuration
 └── README.md

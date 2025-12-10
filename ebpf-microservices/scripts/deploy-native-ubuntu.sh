@@ -3,7 +3,7 @@
 set -e
 
 echo "========================================="
-echo "EAPM Native Ubuntu Deployment"
+echo "eBPF Native Ubuntu Deployment"
 echo "========================================="
 echo ""
 
@@ -120,7 +120,7 @@ mkdir -p "$HOME/.config/systemd/user"
 # API Gateway service
 cat > "$HOME/.config/systemd/user/eapm-api-gateway.service" << EOF
 [Unit]
-Description=EAPM API Gateway
+Description=eBPF API Gateway
 After=network.target eapm-user-service.service eapm-order-service.service
 Wants=eapm-user-service.service eapm-order-service.service
 
@@ -142,7 +142,7 @@ EOF
 # User Service
 cat > "$HOME/.config/systemd/user/eapm-user-service.service" << EOF
 [Unit]
-Description=EAPM User Service
+Description=eBPF User Service
 After=network.target postgresql.service
 Requires=postgresql.service
 
@@ -166,7 +166,7 @@ EOF
 # Order Service
 cat > "$HOME/.config/systemd/user/eapm-order-service.service" << EOF
 [Unit]
-Description=EAPM Order Service
+Description=eBPF Order Service
 After=network.target postgresql.service
 Requires=postgresql.service
 
@@ -190,7 +190,7 @@ EOF
 # Load Generator
 cat > "$HOME/.config/systemd/user/eapm-load-generator.service" << EOF
 [Unit]
-Description=EAPM Load Generator
+Description=eBPF Load Generator
 After=network.target eapm-api-gateway.service
 Wants=eapm-api-gateway.service
 
