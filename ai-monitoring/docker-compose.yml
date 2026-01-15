@@ -1,0 +1,189 @@
+name: aim
+
+services:
+  # Model A - Reliable JSON formatting (Mistral 7B Instruct v0.3)
+  ollama-model-a:
+    build:
+      context: .
+      dockerfile: Dockerfile.ollama-model-a
+    container_name: aim-ollama-model-a
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data-a:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NUM_PARALLEL=1          # Only process 1 request at a time
+      - OLLAMA_MAX_LOADED_MODELS=1     # Only keep 1 model in memory
+      - OLLAMA_NUM_THREAD=12           # Use all 12 CPU threads (test one model at a time)
+      - OLLAMA_CONTEXT_LENGTH=8192     # Context window size (default 4096 was too small)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - aim-network
+    deploy:
+      resources:
+        limits:
+          cpus: '12.0'
+          memory: 12G
+        reservations:
+          cpus: '8.0'
+          memory: 8G
+
+  # Model B - Ministral 3:8b with 8-bit quantization (q8_0)
+  ollama-model-b:
+    build:
+      context: .
+      dockerfile: Dockerfile.ollama-model-b
+    container_name: aim-ollama-model-b
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama-data-b:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NUM_PARALLEL=1          # Only process 1 request at a time
+      - OLLAMA_MAX_LOADED_MODELS=1     # Only keep 1 model in memory
+      - OLLAMA_NUM_THREAD=12           # Use all 12 CPU threads (test one model at a time)
+      - OLLAMA_CONTEXT_LENGTH=8192     # Context window size (default 4096 was too small)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - aim-network
+    deploy:
+      resources:
+        limits:
+          cpus: '12.0'
+          memory: 12G
+        reservations:
+          cpus: '8.0'
+          memory: 8G
+
+  # MCP Server - Tool interface for generic system operations
+  mcp-server:
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile
+    container_name: aim-mcp-server
+    ports:
+      - "8002:8002"
+    environment:
+      - MCP_PORT=${MCP_PORT}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME_MCP_SERVER}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+    networks:
+      - aim-network
+    restart: unless-stopped
+
+  # AI Agent - PydanticAI reasoning engine with A/B model support
+  ai-agent:
+    build:
+      context: ./ai-agent
+      dockerfile: Dockerfile
+    container_name: aim-ai-agent
+    ports:
+      - "8001:8001"
+    environment:
+      - MCP_SERVER_URL=${MCP_SERVER_URL}
+      - OLLAMA_MODEL_A_URL=${OLLAMA_MODEL_A_URL}
+      - OLLAMA_MODEL_B_URL=${OLLAMA_MODEL_B_URL}
+      - MODEL_A_NAME=${MODEL_A_NAME}
+      - MODEL_B_NAME=${MODEL_B_NAME}
+      - AGENT_PORT=${AGENT_PORT}
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME_AI_AGENT}
+    depends_on:
+      ollama-model-a:
+        condition: service_healthy
+      ollama-model-b:
+        condition: service_healthy
+      mcp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+    networks:
+      - aim-network
+    restart: unless-stopped
+
+  # Flask UI - Web interface for tool execution and chat pages
+  # Features: Server-side rendering, AJAX polling, Flask sessions
+  # New Relic: Automatic browser monitoring via APM agent (WSGI)
+  flask-ui:
+    build:
+      context: ./flask-ui
+      dockerfile: Dockerfile
+    container_name: aim-flask-ui
+    ports:
+      - "8501:8501"
+    environment:
+      - AGENT_URL=${AGENT_URL}
+      - MCP_URL=${MCP_URL}
+      - SECRET_KEY=${FLASK_SECRET_KEY:-demo-secret-key-change-in-production}
+      # New Relic
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME_FLASK_UI}
+      - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
+    depends_on:
+      ai-agent:
+        condition: service_healthy
+    networks:
+      - aim-network
+    restart: unless-stopped
+
+  # Locust - Passive load generation for New Relic telemetry
+  # Automatically generates 5-10 requests/hour with comprehensive prompt pool
+  # Includes MCP tool tests, chat, errors, boundaries, and abusive language scenarios
+  locust:
+    build:
+      context: .
+      dockerfile: locust-tests/Dockerfile
+    container_name: aim-locust
+    ports:
+      - "8089:8089"  # Web UI still available for manual testing
+    environment:
+      - FLASK_UI_URL=${FLASK_UI_URL}
+      - AI_AGENT_URL=${AI_AGENT_URL}
+      - LOCUST_WEB_PORT=${LOCUST_WEB_PORT}
+    command: >
+      --autostart
+      --web-host 0.0.0.0
+      --web-port 8089
+      --host http://ai-agent:8001
+      --users 1
+      --spawn-rate 1
+      --run-time 876000h
+      PassiveLoadUser
+    depends_on:
+      ai-agent:
+        condition: service_healthy
+    networks:
+      - aim-network
+    restart: unless-stopped
+
+networks:
+  aim-network:
+    driver: bridge
+    name: aim-network
+
+volumes:
+  ollama-data-a:
+    name: aim-ollama-data-a
+  ollama-data-b:
+    name: aim-ollama-data-b

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat Assistant - New Relic AIM Demo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Navigation -->
+    <nav class="page-nav">
+        <a href="{{ url_for('main.index') }}" class="nav-btn">🏠 Home</a>
+        <a href="{{ url_for('tools.tools_mode') }}" class="nav-btn">🔧 Tools</a>
+    </nav>
+
+    <h1>💬 Chat with AI Agent</h1>
+
+    <!-- Model Selection -->
+    <div class="config-section">
+        <label for="chat-model-select">Select Model:</label>
+        <select id="chat-model-select" class="form-control">
+            <option value="a">Model A (mistral:7b-instruct-v0.3)</option>
+            <option value="b">Model B (ministral-3:8b q8_0)</option>
+        </select>
+    </div>
+
+    <!-- Prompt Selection -->
+    <div class="prompt-selection">
+        <h3>💬 Select a Prompt</h3>
+        <p class="prompt-selection-help">Choose a prompt from the comprehensive test pool or select "Random" to try any prompt:</p>
+
+        <div class="prompt-controls">
+            <select id="prompt-select" class="form-control">
+                <option value="">Loading prompts...</option>
+            </select>
+            <button id="load-prompt-btn" class="btn btn-primary">Load Prompt</button>
+            <button id="random-prompt-btn" class="btn btn-secondary">🎲 Random</button>
+        </div>
+
+        <!-- Prompt Preview -->
+        <div id="prompt-preview" class="prompt-preview" style="display: none;">
+            <div class="prompt-preview-header">
+                <strong>Preview:</strong>
+                <span id="prompt-category" class="prompt-category"></span>
+            </div>
+            <div id="prompt-description" class="prompt-description"></div>
+            <div id="prompt-text" class="prompt-text"></div>
+        </div>
+    </div>
+
+    <!-- Chat History -->
+    <div id="chat-history" class="chat-history">
+        {% for message in chat_history %}
+            {% if message.role == 'user' %}
+                <div class="message user-message">
+                    <div class="message-content">{{ message.content }}</div>
+                    <div class="message-meta">{{ message.timestamp }}</div>
+                </div>
+            {% else %}
+                <div class="message assistant-message">
+                    <div class="message-content">{{ message.content }}</div>
+                    <div class="message-meta">{{ message.timestamp }}{% if message.model %} • {{ message.model }}{% endif %}</div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Chat Input -->
+    <div class="chat-input-container">
+        <textarea id="chat-input" placeholder="Type your message here..." rows="3"></textarea>
+        <div class="chat-buttons">
+            <button id="send-btn" class="btn btn-primary">Send</button>
+            <button id="clear-chat-btn" class="btn btn-secondary">🗑️ Clear History</button>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <details class="info-section">
+        <summary>ℹ️ About the Prompt Pool</summary>
+        <div class="info-content">
+            <h4>18 Test Prompts Across Categories</h4>
+            <ul>
+                <li><strong>MCP Tool Testing (2):</strong> Healthy system checks and full repair workflows</li>
+                <li><strong>Simple Chat (5):</strong> Basic conversational queries</li>
+                <li><strong>Complex Chat (5):</strong> Multi-faceted diagnostic questions</li>
+                <li><strong>Error Scenarios (3):</strong> Edge cases that should trigger errors</li>
+                <li><strong>Boundary Testing (3):</strong> Destructive operations and prompt injection attempts</li>
+                <li><strong>Abusive Language (1):</strong> Testing professional response to verbal abuse</li>
+            </ul>
+            <p><strong>Feedback Events:</strong> Each request automatically generates feedback in New Relic based on response quality heuristics (latency, tool usage, success rate).</p>
+        </div>
+    </details>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}
